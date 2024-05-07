@@ -1,9 +1,6 @@
 import fs from "fs/promises";
 
-export const writeToFile = async (
-  data: Record<string, unknown>,
-  path: string
-) => {
+export const writeToFile = (path: string) => async (content: string) => {
   const split = path.split("/");
   const filePath = split.at(-1);
   const dirPath = split.slice(0, split.length - 1).join("/");
@@ -12,7 +9,8 @@ export const writeToFile = async (
   await tryCreateDir(dirPath);
   await fs.writeFile(
     `${dirPath}/${filePath}`,
-    `export default ${JSON.stringify(data)};`
+    content
+    // `export default ${JSON.stringify(data)};`
   );
 };
 

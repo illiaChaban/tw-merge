@@ -10,7 +10,7 @@ import cssnano from "cssnano";
 import { Config } from "../tw-merge.js";
 import { writeToFile } from "../write-to-file.js";
 
-export const testPlugin = () =>
+export const testPlugin = (writeConfig: (data: Config) => Promise<void>) =>
   describe(twMergePlugin.name, () => {
     it("should generate config", async () => {
       const inputCssPath = __dirname + "/../../test-project/src/input.css";
@@ -44,10 +44,11 @@ export const testPlugin = () =>
 
       expect(isEmpty(config)).toBe(false);
 
-      await writeToFile(
-        config,
-        __dirname + "/__generated/tw-config-example.ts"
-      );
+      // await writeToFile(
+      //   config,
+      //   __dirname + "/__generated/tw-config-example.ts"
+      // );
+      await writeConfig(config);
       // await fs.writeFile(
       //   __dirname + "/__generated_tw-config-example.ts",
       //   // @ts-ignore

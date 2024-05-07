@@ -26,6 +26,14 @@ export const createTwMerge = (config: Config) => {
 
         // populate current styles only when needed
         if (i === 1) {
+          // console.log("populate now", {
+          //   i,
+          //   config,
+          //   classes: getClasses(arr[0]),
+          // });
+          getClasses(arr[0]).forEach((c) =>
+            console.log("populate now", { c, i, values: config[c], config })
+          );
           getClasses(arr[0]).forEach((c) =>
             Object.assign(currentStyles, config[c])
           );
@@ -50,6 +58,11 @@ export const createTwMerge = (config: Config) => {
         nonConflictingClasses.forEach((c) =>
           Object.assign(currentStyles, config[c])
         );
+
+        console.log({
+          currentStyles: { ...currentStyles },
+          nonConflictingClasses,
+        });
 
         return nonConflictingClasses.reverse().join(" ");
 

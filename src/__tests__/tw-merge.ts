@@ -1,11 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { createTwMerge } from "../tw-merge";
+import { Config, createTwMerge } from "../tw-merge";
 
-import configExample from "./__generated/tw-config-example";
-
-export const testTwMerge = () =>
+export const testTwMerge = (getConfig: () => Promise<Config>) =>
   describe("tw-merge", () => {
-    const twMerge = createTwMerge(configExample);
+    let twMerge: ReturnType<typeof createTwMerge>;
+
+    it("should create tw-merge", async () => {
+      const config = await getConfig();
+      expect(Object.keys(config).includes("p-2")).toBe(true);
+      twMerge = createTwMerge(config);
+      expect(twMerge).toBeTypeOf("function");
+    });
 
     it("should leave 1 string unchanged", () => {
       expect(twMerge("p-2 px-4")).toBe("p-2 px-4");
