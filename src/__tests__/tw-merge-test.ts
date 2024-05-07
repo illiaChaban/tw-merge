@@ -31,6 +31,11 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       );
     });
 
+    it("supports custom plugins", () => {
+      expect(twMerge("all-unset", "all-inherit")).toBe("all-inherit");
+      expect(twMerge("all-inherit", "all-unset")).toBe("all-unset");
+    });
+
     it(`
       should treat each passed in string as already checked for conflicts (by linter)
       and avoid comparing classes from 1 string to each other
@@ -145,13 +150,6 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       );
     });
 
-    it("ring and shadow classes do not create conflict", () => {
-      expect(twMerge("ring", "shadow")).toBe("ring shadow");
-      expect(twMerge("ring-2", "shadow-md")).toBe("ring-2 shadow-md");
-      expect(twMerge("shadow", "ring")).toBe("shadow ring");
-      expect(twMerge("shadow-md", "ring-2")).toBe("shadow-md ring-2");
-    });
-
     // TODO: adjust for value
 
     it("touch classes do create conflicts correctly", () => {
@@ -183,18 +181,124 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       );
     });
 
+    it("handles different order of modifiers correctly", () => {
+      expect(twMerge("hover:focus:-right-1", "focus:hover:inset-x-1")).toBe(
+        "focus:hover:inset-x-1"
+      );
+    });
+
+    it("handles pseudo variants conflicts properly", () => {
+      expect(twMerge("empty:p-2", "empty:p-3")).toBe("empty:p-3");
+      expect(twMerge("empty:p-3", "empty:p-2")).toBe("empty:p-2");
+      expect(twMerge("hover:empty:p-2", "hover:empty:p-3")).toBe(
+        "hover:empty:p-3"
+      );
+      expect(twMerge("read-only:p-2", "read-only:p-3")).toBe("read-only:p-3");
+    });
+
+    it("conflicts across prefix modifiers", () => {
+      expect(twMerge("hover:block", "hover:inline")).toBe("hover:inline");
+      expect(twMerge("hover:block", "hover:focus:inline")).toBe(
+        "hover:block hover:focus:inline"
+      );
+      expect(
+        twMerge("hover:block", "hover:focus:inline", "focus:hover:inline")
+      ).toBe("hover:block focus:hover:inline");
+      expect(twMerge("focus-within:inline", "focus-within:block")).toBe(
+        "focus-within:block"
+      );
+    });
+
+    it("conflicts across postfix modifiers", () => {
+      expect(twMerge("text-lg/7", "text-lg/8")).toBe("text-lg/8");
+      expect(twMerge("text-lg/none", "leading-9")).toBe(
+        "text-lg/none leading-9"
+      );
+      expect(twMerge("leading-9", "text-lg/none")).toBe("text-lg/none");
+      expect(twMerge("w-full", "w-1/2")).toBe("w-1/2");
+    });
+
+    it("handles color conflicts properly, including the ones extending theme", () => {
+      expect(twMerge("bg-gray-50", "bg-custom-pink")).toBe("bg-custom-pink");
+      expect(twMerge("hover:bg-gray-50", "hover:bg-custom-pink")).toBe(
+        "hover:bg-custom-pink"
+      );
+      expect(twMerge("stroke-[hsl(350_80%_0%)]", "stroke-[10px]")).toBe(
+        "stroke-[hsl(350_80%_0%)] stroke-[10px]"
+      );
+    });
+
+    /** Arbitrary properties */
+    it("handles arbitrary property conflicts correctly", () => {
+      expect(twMerge("[paint-order:markers]", "[paint-order:normal]")).toBe(
+        "[paint-order:normal]"
+      );
+      expect(
+        twMerge(
+          "[paint-order:markers]",
+          "[--my-var:2rem]",
+          "[paint-order:normal]",
+          "[--my-var:4px]"
+        )
+      ).toBe("[paint-order:normal] [--my-var:4px]");
+    });
+
+    it("handles arbitrary property conflicts with modifiers correctly", () => {
+      expect(
+        twMerge("[paint-order:markers]", "hover:[paint-order:normal]")
+      ).toBe("[paint-order:markers] hover:[paint-order:normal]");
+      expect(
+        twMerge("hover:[paint-order:markers]", "hover:[paint-order:normal]")
+      ).toBe("hover:[paint-order:normal]");
+      expect(
+        twMerge(
+          "hover:focus:[paint-order:markers]",
+          "focus:hover:[paint-order:normal]"
+        )
+      ).toBe("focus:hover:[paint-order:normal]");
+      expect(
+        twMerge(
+          "[paint-order:markers]",
+          "[paint-order:normal]",
+          "[--my-var:2rem]",
+          "lg:[--my-var:4px]"
+        )
+      ).toBe("[paint-order:normal] [--my-var:2rem] lg:[--my-var:4px]");
+    });
+
+    it("handles complex arbitrary property conflicts correctly", () => {
+      expect(twMerge("[src:local(serif)]", "[src:url(https://hi.com)]")).toBe(
+        "[src:url(https://hi.com)]"
+      );
+      expect(twMerge("[src:url(https://hi.com)]", "[src:local(serif)]")).toBe(
+        "[src:local(serif)]"
+      );
+    });
+
+    it("handles important modifier correctly", () => {
+      expect(twMerge("![display:block]", "[display:inherit]")).toBe(
+        "![display:block] [display:inherit]"
+      );
+      expect(
+        twMerge(
+          "![display:block]",
+          "[display:inherit]",
+          "[display:inline]",
+          "![display:inline-block]"
+        )
+      ).toBe("[display:inline] ![display:inline-block]");
+    });
+    /** */
+
     // TODO
 
-    // it("handles different order of modifiers correctly", () => {
-    //   expect(twMerge("hover:focus:-right-1", "focus:hover:inset-x-1")).toBe(
-    //     "focus:hover:inset-x-1"
-    //   );
-    // })
-    //   test('handles pseudo variants conflicts properly', () => {
-    //     expect(twMerge('empty:p-2 empty:p-3')).toBe('empty:p-3')
-    //     expect(twMerge('hover:empty:p-2 hover:empty:p-3')).toBe('hover:empty:p-3')
-    //     expect(twMerge('read-only:p-2 read-only:p-3')).toBe('read-only:p-3')
-    // })
+    // This might be ok to not support since 1 string is not checked
+    // it("ring and shadow classes do not create conflict", () => {
+    //   expect(twMerge("ring", "shadow")).toBe("ring shadow");
+    //   expect(twMerge("ring-2", "shadow-md")).toBe("ring-2 shadow-md");
+    //   expect(twMerge("shadow", "ring")).toBe("shadow ring");
+    //   expect(twMerge("shadow-md", "ring-2")).toBe("shadow-md ring-2");
+    // });
 
     // test('handles pseudo variant group conflicts properly', () => {
     //     expect(twMerge('group-empty:p-2 group-empty:p-3')).toBe('group-empty:p-3')
@@ -202,43 +306,5 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
     //     expect(twMerge('group-empty:p-2 peer-empty:p-3')).toBe('group-empty:p-2 peer-empty:p-3')
     //     expect(twMerge('hover:group-empty:p-2 hover:group-empty:p-3')).toBe('hover:group-empty:p-3')
     //     expect(twMerge('group-read-only:p-2 group-read-only:p-3')).toBe('group-read-only:p-3')
-    // })
-
-    //   test('conflicts across prefix modifiers', () => {
-    //     expect(twMerge('hover:block hover:inline')).toBe('hover:inline')
-    //     expect(twMerge('hover:block hover:focus:inline')).toBe('hover:block hover:focus:inline')
-    //     expect(twMerge('hover:block hover:focus:inline focus:hover:inline')).toBe(
-    //         'hover:block focus:hover:inline',
-    //     )
-    //     expect(twMerge('focus-within:inline focus-within:block')).toBe('focus-within:block')
-    // })
-
-    // test('conflicts across postfix modifiers', () => {
-    //     expect(twMerge('text-lg/7 text-lg/8')).toBe('text-lg/8')
-    //     expect(twMerge('text-lg/none leading-9')).toBe('text-lg/none leading-9')
-    //     expect(twMerge('leading-9 text-lg/none')).toBe('text-lg/none')
-    //     expect(twMerge('w-full w-1/2')).toBe('w-1/2')
-
-    //     const customTwMerge = createTailwindMerge(() => ({
-    //         cacheSize: 10,
-    //         separator: ':',
-    //         theme: {},
-    //         classGroups: {
-    //             foo: ['foo-1/2', 'foo-2/3'],
-    //             bar: ['bar-1', 'bar-2'],
-    //             baz: ['baz-1', 'baz-2'],
-    //         },
-    //         conflictingClassGroups: {},
-    //         conflictingClassGroupModifiers: {
-    //             baz: ['bar'],
-    //         },
-    //     }))
-
-    //     expect(customTwMerge('foo-1/2 foo-2/3')).toBe('foo-2/3')
-    //     expect(customTwMerge('bar-1 bar-2')).toBe('bar-2')
-    //     expect(customTwMerge('bar-1 baz-1')).toBe('bar-1 baz-1')
-    //     expect(customTwMerge('bar-1/2 bar-2')).toBe('bar-2')
-    //     expect(customTwMerge('bar-2 bar-1/2')).toBe('bar-1/2')
-    //     expect(customTwMerge('bar-1 baz-1/2')).toBe('baz-1/2')
     // })
   });

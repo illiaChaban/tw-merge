@@ -56,6 +56,7 @@ const myCustomPlugin = ({
   onParsed = (data) =>
     writeConfigToFile(data, __dirname + "/../test/_generated/tw-config.ts"),
 } = {}) => {
+
   console.log(`
   
   
@@ -107,7 +108,7 @@ const myCustomPlugin = ({
           // by multiple classes with no effect on final design
           // example: content: var(--tw-content)
           // filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)
-          .filter((n) => n.value.replaceAll(/var\(--.+?\)/g, "").trim() !== "")
+          // .filter((n) => n.value.replaceAll(/var\(--.+?\)/g, "").trim() !== "")
           .map((n) => [n.prop, n.value]);
         const affectedPropsMap = Object.fromEntries(
           affectedProps.flatMap(([prop, value]) => expandShorthand(prop).map(p => [p, { o: rulePriority, v: value, i: isImportant }]))
@@ -139,10 +140,12 @@ const myCustomPlugin = ({
             ? mainClassName
             : ":" + mainClassName;
           const [twModifiers, cssModifiers, ...rest] = c.split(splitter);
+          /** Order of modifers generally shouldn't matter */
+          const sortedModifers = twModifiers.split(':').sort().join(':')
           /** Classname the way it's displayed in html */
           const htmlClassName = c.slice(
             0,
-            twModifiers.length + splitter.length
+            sortedModifers.length + splitter.length
           );
           if (rest.length)
             throw new Error(`Rest should be empty: ${JSON.stringify(rest)}`);
@@ -150,7 +153,7 @@ const myCustomPlugin = ({
             ?.split?.("::")[1]
             ?.split?.(":")?.[0];
           console.log(`
-          twModifiers: ${twModifiers.split(":").join(", ")}
+          twModifiers: ${sortedModifers.split(":").join(", ")}
           pseudoElement: ${pseudoElement}
           `);
 
@@ -161,7 +164,7 @@ const myCustomPlugin = ({
           For now assuming that two classes are conflicting only if they modify intersecting properties with the same 
           tw modifers and on the same pseudelement (or root)
           */
-          const key = [twModifiers, pseudoElement ?? "root"]
+          const key = [sortedModifers, pseudoElement ?? "root"]
             .filter(Boolean)
             .join("::");
           parsed[htmlClassName][key] ??= {};
@@ -193,8 +196,8 @@ const myCustomPlugin = ({
       
       `);
 
-      const minimized = minimizeConfig(parsed);
-      // const minimized = parsed;
+      // const minimized = minimizeConfig(flattenConfig(parsed));
+      const minimized = flattenConfig(parsed);
 
       console.log(`
       
@@ -246,6 +249,18 @@ export const writeConfigToFile = (data, path) => {
     `export default ${JSON.stringify(data)};`
   );
 };
+
+const flattenConfig = (config) => {
+  const configEntries = Object.entries(config)
+    // flat / expand locations
+    .map(([className, locations]) => {
+      const flatAffectedProps = Object.entries(locations).flatMap(
+        ([location, props]) => Object.entries(props).map(([prop, map]) => [location + ">>" + prop, map])
+      );
+      return [className, Object.fromEntries(flatAffectedProps)];
+    });
+  return Object.fromEntries(configEntries);
+}
 
 const minimizeConfig = (() => {
   const generateStringKey = (() => {
@@ -331,19 +346,36 @@ const minimizeConfig = (() => {
     //   }),
     // )
 
+    // const configEntries = Object.entries(config)
+    //   // flat / expand locations
+    //   .map(([className, locations]) => {
+    //     const flatAffectedProps = Object.entries(locations).flatMap(
+    //       ([location, props]) => {
+    //         // update keys, encode location into prop key
+    //         return Object.entries(props).map(([prop, { v, i, ...map }]) => [
+    //           minimizeStringKey(location + ">>" + prop),
+    //           { v, i, ...map },
+    //           // { v: minimizeNumberKey(v), i: minimizeBoolean(i), ...map },
+    //         ]);
+    //       }
+    //     );
+    //     return [className, Object.fromEntries(flatAffectedProps)];
+    //   });
+    // return Object.fromEntries(configEntries);
+
+    // TODO: replace with mapValues
     const configEntries = Object.entries(config)
-      // flat / expand locations
-      .map(([className, locations]) => {
-        const flatAffectedProps = Object.entries(locations).flatMap(
-          ([location, props]) => {
+      .map(([className, props]) => {
+        const e = Object.entries(props).map(
+          ([prop, { v, i, ...map }]) => {
             // update keys, encode location into prop key
-            return Object.entries(props).map(([prop, { v, i, ...map }]) => [
-              minimizeStringKey(location + ">>" + prop),
+            return [
+              minimizeStringKey(prop),
               { v: minimizeNumberKey(v), i: minimizeBoolean(i), ...map },
-            ]);
+            ];
           }
         );
-        return [className, Object.fromEntries(flatAffectedProps)];
+        return [className, Object.fromEntries(e)]
       });
     return Object.fromEntries(configEntries);
   };

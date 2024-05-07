@@ -20,7 +20,11 @@ export const testPlugin = (writeConfig: (data: Config) => Promise<void>) =>
         tailwindcss({
           content: [__dirname + "/tw-merge-test.ts"],
           theme: {
-            extend: {},
+            extend: {
+              colors: {
+                "custom-pink": "#f472b6",
+              },
+            },
           },
           plugins: [
             ({ addUtilities }: any) => {

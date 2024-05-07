@@ -4,15 +4,16 @@ type ClassName = string;
 type PropertyKey = string;
 type Order = number;
 type Falsy = null | undefined | 0 | "" | false;
-type Value = number;
+type Value = string | number;
 type Important = boolean | 0 | 1;
+
+// TODO: is storing value even needed?
 
 export const createTwMerge = (config: Config) => {
   if (!config) throw "No config";
 
-  // console.log({ ...config });
-
   return (...allClasses: (string | Falsy)[]) => {
+    const log = logWhen(allClasses.at(-1) === "![display:inline-block]");
     const currentStyles: Styles = {};
     /**
      TODO: performance
@@ -49,7 +50,7 @@ export const createTwMerge = (config: Config) => {
         const classes = getClasses(classNames);
         const nonConflictingClasses = classes.reverse().filter((c) => {
           const styles = config[c];
-          console.log({ c, styles, config });
+          log({ c, styles, config });
           // propagate unknown styles, assume custom css classes or css modules
           if (!styles) return true;
           const entries = Object.entries(styles);
@@ -60,10 +61,15 @@ export const createTwMerge = (config: Config) => {
             const noExistingStyle = currentStyles[prop] === undefined;
             addsStyle = addsStyle || noExistingStyle;
             addsImportant = !currentStyles[prop]?.i && map.i;
-            return noExistingStyle || currentStyles[prop].o > map.o;
+            return (
+              noExistingStyle ||
+              // TODO: is this needed?
+              // currentStyles[prop].v === map.v ||
+              currentStyles[prop].o > map.o
+            );
           });
           const shouldAdd = (addsStyle && noOverride) || addsImportant;
-          console.log({
+          log({
             shouldAdd,
             addsStyle,
             noOverride,
@@ -117,3 +123,12 @@ const getClasses = (classNames: string) =>
     .filter(Boolean);
 
 const isTruthy = <T>(value: T): value is Exclude<T, Falsy> => !!value;
+
+/**
+ * TODO: remove
+ * @deprecated  */
+const logWhen =
+  (condition: unknown) =>
+  (...args: any[]) => {
+    if (condition) console.log(...args);
+  };
