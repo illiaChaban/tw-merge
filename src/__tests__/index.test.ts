@@ -2,13 +2,13 @@ import fs from "fs/promises";
 import { describe, it } from "vitest";
 import { Config } from "../tw-merge";
 import { writeToFile } from "../write-to-file";
-import { testTwMerge } from "./tw-merge";
-import { testPlugin } from "./tw-merge-postcss-plugin";
+import { testTwMerge } from "./tw-merge-test";
+import { testPlugin } from "./tw-merge-postcss-plugin-test";
 
 describe.sequential("tw-merge tooling", () => {
   testPlugin(writeConfig);
   testTwMerge(getConfig);
-  it(cleanup);
+  it("cleanup", cleanup);
 });
 
 const GENERATED_DIR = "__generated";

@@ -39,4 +39,19 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       // Rusulting padding styles: 2 4 6 4, NOT( 2 2 6 2 )
       expect(twMerge("px-4 p-2", "pb-6")).toBe("px-4 p-2 pb-6");
     });
+
+    it("should for simple cases work", () => {
+      expect(twMerge("mix-blend-normal", "mix-blend-multiply")).toBe(
+        "mix-blend-multiply"
+      );
+      expect(twMerge("h-10", "h-min")).toBe("h-min");
+      expect(twMerge("stroke-black", "stroke-1")).toBe("stroke-black stroke-1");
+      expect(twMerge("stroke-2", "stroke-[3]")).toBe("stroke-[3]");
+      expect(twMerge("outline-black", "outline-1")).toBe(
+        "outline-black outline-1"
+      );
+      expect(twMerge("grayscale-0", "grayscale-[50%]")).toBe("grayscale-[50%]");
+      expect(twMerge("grow", "grow-[2]")).toBe("grow-[2]");
+      // expect(twMerge('grow', [null, false, [['grow-[2]']]])).toBe('grow-[2]')
+    });
   });

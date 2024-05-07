@@ -31,9 +31,9 @@ export const createTwMerge = (config: Config) => {
           //   config,
           //   classes: getClasses(arr[0]),
           // });
-          getClasses(arr[0]).forEach((c) =>
-            console.log("populate now", { c, i, values: config[c], config })
-          );
+          // getClasses(arr[0]).forEach((c) =>
+          //   console.log("populate now", { c, i, values: config[c], config })
+          // );
           getClasses(arr[0]).forEach((c) =>
             Object.assign(currentStyles, config[c])
           );
@@ -42,14 +42,23 @@ export const createTwMerge = (config: Config) => {
         const classes = getClasses(classNames);
         const nonConflictingClasses = classes.reverse().filter((c) => {
           const styles = config[c];
-          const hasConflict =
-            styles &&
-            Object.entries(styles).some(
-              ([prop, order]) =>
-                currentStyles[prop] && order > currentStyles[prop]
-            );
+          if (!styles) return true;
+          const entries = Object.entries(styles);
+          // adds some styles without overriding existing
+          const shouldAdd = entries.every(
+            ([prop, order]) =>
+              !currentStyles[prop] || currentStyles[prop] > order
+          );
+          return shouldAdd;
+          // const shouldAdd =
+          // const hasConflict =
+          //   styles &&
+          //   Object.entries(styles).some(
+          //     ([prop, order]) =>
+          //       currentStyles[prop] && order > currentStyles[prop]
+          //   );
 
-          return !hasConflict;
+          // return !hasConflict;
         });
 
         // TODO: add all styles as a batch instead of one by one ? treat each passed string as a checked one?
@@ -59,10 +68,10 @@ export const createTwMerge = (config: Config) => {
           Object.assign(currentStyles, config[c])
         );
 
-        console.log({
-          currentStyles: { ...currentStyles },
-          nonConflictingClasses,
-        });
+        // console.log({
+        //   currentStyles: { ...currentStyles },
+        //   nonConflictingClasses,
+        // });
 
         return nonConflictingClasses.reverse().join(" ");
 
