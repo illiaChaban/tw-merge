@@ -285,14 +285,17 @@ const minimizeConfig = (() => {
     return () => ++count;
   })();
 
-  const minimizeKey = (() => {
+  const createMinimizeKey = (keyGenerator) => {
     const cache = {};
     return (key) => {
-      // cache[key] ??= generateNumberKey()
-      cache[key] ??= generateStringKey();
+      cache[key] ??= keyGenerator();
       return cache[key];
     };
-  })();
+  }
+
+  const minimizeStringKey = createMinimizeKey(generateStringKey);
+  const minimizeNumberKey = createMinimizeKey(generateNumberKey);
+
   return (config) => {
     /**
       map {
@@ -333,9 +336,9 @@ const minimizeConfig = (() => {
         const flatAffectedProps = Object.entries(locations).flatMap(
           ([location, props]) => {
             // update keys, encode location into prop key
-            return Object.entries(props).map(([prop, map]) => [
-              minimizeKey(location + ">>" + prop),
-              map,
+            return Object.entries(props).map(([prop, { v, ...map }]) => [
+              minimizeStringKey(location + ">>" + prop),
+              { v: minimizeNumberKey(v), ...map },
             ]);
           }
         );
