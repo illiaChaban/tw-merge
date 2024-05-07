@@ -52,6 +52,10 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       );
       expect(twMerge("grayscale-0", "grayscale-[50%]")).toBe("grayscale-[50%]");
       expect(twMerge("grow", "grow-[2]")).toBe("grow-[2]");
-      // expect(twMerge('grow', [null, false, [['grow-[2]']]])).toBe('grow-[2]')
+    });
+
+    it("should support falsy values", () => {
+      expect(twMerge("grow", null, false, "grow-[2]")).toBe("grow-[2]");
+      expect(twMerge("grow-[2]", null, false, "grow")).toBe("grow");
     });
   });
