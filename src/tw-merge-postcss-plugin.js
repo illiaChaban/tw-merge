@@ -108,9 +108,9 @@ const myCustomPlugin = ({
           // example: content: var(--tw-content)
           // filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)
           .filter((n) => n.value.replaceAll(/var\(--.+?\)/g, "").trim() !== "")
-          .map((n) => n.prop);
+          .map((n) => [n.prop, n.value]);
         const affectedPropsMap = Object.fromEntries(
-          affectedProps.flatMap(expandShorthand).map((p) => [p, rulePriority])
+          affectedProps.flatMap(([prop, value]) => expandShorthand(prop).map(p => [p, { o: rulePriority, v: value, i: isImportant }]))
         );
 
         const classes = rule.selector
@@ -194,6 +194,7 @@ const myCustomPlugin = ({
       `);
 
       const minimized = minimizeConfig(parsed);
+      // const minimized = parsed;
 
       console.log(`
       
@@ -332,9 +333,9 @@ const minimizeConfig = (() => {
         const flatAffectedProps = Object.entries(locations).flatMap(
           ([location, props]) => {
             // update keys, encode location into prop key
-            return Object.entries(props).map(([prop, order]) => [
+            return Object.entries(props).map(([prop, map]) => [
               minimizeKey(location + ">>" + prop),
-              order,
+              map,
             ]);
           }
         );

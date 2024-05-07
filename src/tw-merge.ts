@@ -1,9 +1,11 @@
 export type Config = Record<ClassName, Styles>;
-export type Styles = Record<PropertyKey, Order>;
+export type Styles = Record<PropertyKey, { o: Order; v: Value; i: Important }>;
 type ClassName = string;
 type PropertyKey = string;
 type Order = number;
 type Falsy = null | undefined | 0 | "" | false;
+type Value = number;
+type Important = boolean;
 
 export const createTwMerge = (config: Config) => {
   if (!config) throw "No config";
@@ -47,25 +49,29 @@ export const createTwMerge = (config: Config) => {
         const classes = getClasses(classNames);
         const nonConflictingClasses = classes.reverse().filter((c) => {
           const styles = config[c];
-          // console.log({ c, styles, config });
+          console.log({ c, styles, config });
           // propagate unknown styles, assume custom css classes or css modules
           if (!styles) return true;
           const entries = Object.entries(styles);
           // adds some styles without overriding existing
           let addsStyle = false;
-          const noOverride = entries.every(([prop, order]) => {
+          let addsImportant = false;
+          const noOverride = entries.every(([prop, map]) => {
             const noExistingStyle = currentStyles[prop] === undefined;
             addsStyle = addsStyle || noExistingStyle;
-            return noExistingStyle || currentStyles[prop] > order;
+            addsImportant = !currentStyles[prop]?.i && map.i;
+            return noExistingStyle || currentStyles[prop].o > map.o;
           });
-          const shouldAdd = addsStyle && noOverride;
-          // console.log({
-          //   shouldAdd,
-          //   class: c,
-          //   allClasses,
-          //   currentStyles: { ...currentStyles },
-          //   styles,
-          // });
+          const shouldAdd = (addsStyle && noOverride) || addsImportant;
+          console.log({
+            shouldAdd,
+            addsStyle,
+            noOverride,
+            class: c,
+            allClasses,
+            currentStyles: { ...currentStyles },
+            styles,
+          });
           return shouldAdd;
           // const shouldAdd =
           // const hasConflict =

@@ -114,10 +114,9 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
 
     it("merges tailwind classes with important modifier correctly", () => {
       expect(twMerge("!font-medium", "!font-bold")).toBe("!font-bold");
-      // TODO: should it keep the last !important class?
-      // expect(twMerge("!font-medium", "!font-bold", "font-thin")).toBe(
-      //   "!font-bold font-thin"
-      // );
+      expect(twMerge("!font-medium", "!font-bold", "font-thin")).toBe(
+        "!font-bold font-thin"
+      );
       expect(twMerge("!right-2", "!-inset-x-px")).toBe("!-inset-x-px");
       expect(twMerge("focus:!inline", "focus:!block")).toBe("focus:!block");
     });
@@ -152,6 +151,8 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       expect(twMerge("shadow", "ring")).toBe("shadow ring");
       expect(twMerge("shadow-md", "ring-2")).toBe("shadow-md ring-2");
     });
+
+    // TODO: adjust for value
 
     it("touch classes do create conflicts correctly", () => {
       expect(twMerge("touch-pan-x", "touch-pan-right")).toBe("touch-pan-right");
