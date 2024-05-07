@@ -47,7 +47,9 @@ export const testPlugin = (writeConfig: (data: Config) => Promise<void>) =>
             twConfig = data;
           },
         }),
-      ]).process(inputCss);
+      ]).process(inputCss, { from: undefined });
+
+      console.log(processed.css);
 
       const config = twConfig!;
 

@@ -9,6 +9,9 @@ describe.sequential("tw-merge tooling", () => {
   testPlugin(writeConfig);
   testTwMerge(getConfig);
   it("cleanup", cleanup);
+
+  // TODO: test prefixes https://github.com/dcastil/tailwind-merge/blob/v2.3.0/tests/prefixes.test.ts
+  // TODO: test separators https://github.com/dcastil/tailwind-merge/blob/v2.3.0/tests/separators.test.ts
 });
 
 const GENERATED_DIR = "__generated";

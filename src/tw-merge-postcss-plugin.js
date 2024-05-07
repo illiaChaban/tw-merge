@@ -97,6 +97,10 @@ const myCustomPlugin = ({
         // console.log({ isClass, classCandidate, raws: JSON.stringify(rule.raws ?? {}) })
         if (!isClass || !classCandidate) return;
 
+        // Tailwind metadata doesn't automatically include "!" important in classCandidate
+        const isImportant = rule.selector[rule.selector.indexOf(classCandidate) - 1] === '!'
+        const mainClassName = isImportant ? '!' + classCandidate : classCandidate
+
         rulePriority++;
         const affectedProps = rule.nodes
           // ignore all "set up" props that just set up values as variables, since they can be duplicated & overriden
@@ -131,12 +135,10 @@ const myCustomPlugin = ({
         `);
 
         classes.forEach((c) => {
-          const splitter = c.startsWith(classCandidate)
-            ? classCandidate
-            : ":" + classCandidate;
-          const [twModifiers, cssModifiers, ...rest] = c.split(
-            c.startsWith(classCandidate) ? classCandidate : ":" + classCandidate
-          );
+          const splitter = c.startsWith(mainClassName)
+            ? mainClassName
+            : ":" + mainClassName;
+          const [twModifiers, cssModifiers, ...rest] = c.split(splitter);
           /** Classname the way it's displayed in html */
           const htmlClassName = c.slice(
             0,
@@ -215,6 +217,7 @@ const expandShorthand = (property) => {
   // TODO: extend this
   const shorthands = {
     padding: ["padding-top", "padding-right", "padding-bottom", "padding-left"],
+    inset: ["top", "right", "bottom", "left"]
   };
   return shorthands[property] ?? [property];
 };

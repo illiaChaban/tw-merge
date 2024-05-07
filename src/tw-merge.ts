@@ -42,12 +42,12 @@ export const createTwMerge = (config: Config) => {
             Object.assign(currentStyles, config[c])
           );
         }
-        console.log("here!");
+        // console.log("here!");
 
         const classes = getClasses(classNames);
         const nonConflictingClasses = classes.reverse().filter((c) => {
           const styles = config[c];
-          console.log({ c, styles, config });
+          // console.log({ c, styles, config });
           // propagate unknown styles, assume custom css classes or css modules
           if (!styles) return true;
           const entries = Object.entries(styles);
@@ -59,13 +59,13 @@ export const createTwMerge = (config: Config) => {
             return noExistingStyle || currentStyles[prop] > order;
           });
           const shouldAdd = addsStyle && noOverride;
-          console.log({
-            shouldAdd,
-            class: c,
-            allClasses,
-            currentStyles: { ...currentStyles },
-            styles,
-          });
+          // console.log({
+          //   shouldAdd,
+          //   class: c,
+          //   allClasses,
+          //   currentStyles: { ...currentStyles },
+          //   styles,
+          // });
           return shouldAdd;
           // const shouldAdd =
           // const hasConflict =
