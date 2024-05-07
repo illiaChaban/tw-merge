@@ -8,6 +8,7 @@ import tailwindcss from "tailwindcss";
 import tailwindConfig from "../../test-project/tailwind.config.js";
 import cssnano from "cssnano";
 import { Config } from "../tw-merge.js";
+import { writeToFile } from "../write-to-file.js";
 
 export const testPlugin = () =>
   describe(twMergePlugin.name, () => {
@@ -39,18 +40,19 @@ export const testPlugin = () =>
       // `,
       //   processed.css
       // );
+      const config = twConfig!;
 
-      const isEmpty = (obj: {}) =>
-        typeof obj === "object" && Object.keys(obj).length === 0;
+      expect(isEmpty(config)).toBe(false);
 
-      // @ts-ignore
-      expect(isEmpty(twConfig)).toBe(false);
-
-      await fs.writeFile(
-        __dirname + "/tw-config-example.ts",
-        // @ts-ignore
-        `export default ${JSON.stringify(twConfig)}`
+      await writeToFile(
+        config,
+        __dirname + "/__generated/tw-config-example.ts"
       );
+      // await fs.writeFile(
+      //   __dirname + "/__generated_tw-config-example.ts",
+      //   // @ts-ignore
+      //   `export default ${JSON.stringify(twConfig)}`
+      // );
 
       // const minified = (await postcss([cssnano]).process(processed.css)).css;
 
@@ -70,3 +72,6 @@ export const testPlugin = () =>
       // expect(minified).toEqual(minifiedOutputCss);
     });
   });
+
+const isEmpty = (obj: {}) =>
+  typeof obj === "object" && Object.keys(obj).length === 0;

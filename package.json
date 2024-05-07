@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "vitest run",
+    "test": "cd test-project && npx tailwindcss -i ./src/input.css -o ./src/output.css && cd .. && vitest run",
     "test-w": "vitest"
   },
   "devDependencies": {

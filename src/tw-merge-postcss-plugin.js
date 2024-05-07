@@ -65,7 +65,7 @@ const myCustomPlugin = ({
   `);
   return {
     postcssPlugin: "my-custom-plugin",
-    Once(root, { result }) {
+    async Once(root, { result }) {
       console.log(
         ` 
       
@@ -202,7 +202,7 @@ const myCustomPlugin = ({
       
       `);
 
-      onParsed(minimized);
+      await onParsed(minimized);
 
       console.log("Saved!");
     },
@@ -229,7 +229,7 @@ const tryCreateDir = (dirPath) => {
   }
 };
 
-const writeConfigToFile = (data, path) => {
+export const writeConfigToFile = (data, path) => {
   const split = path.split("/");
   const filePath = split.at(-1);
   const dirPath = split.slice(0, split.length - 1).join("/");

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createTwMerge } from "../tw-merge";
 
-import configExample from "./tw-config-example";
+import configExample from "./__generated/tw-config-example";
 
 export const testTwMerge = () =>
   describe("tw-merge", () => {
