@@ -1,14 +1,12 @@
-import postcss from "postcss";
-import { describe, it, expect } from "vitest";
 import fs from "fs/promises";
-// @ts-expect-error
-import twMergePlugin from "../tw-merge-postcss-plugin.js";
+import postcss from "postcss";
+import { describe, expect, it } from "vitest";
 import tailwindcss from "tailwindcss";
 // @ts-expect-error
+import twMergePlugin from "../tw-merge-postcss-plugin.js";
+// @ts-expect-error
 import tailwindConfig from "../../test-project/tailwind.config.js";
-import cssnano from "cssnano";
 import { Config } from "../tw-merge.js";
-import { writeToFile } from "../write-to-file.js";
 
 export const testPlugin = (writeConfig: (data: Config) => Promise<void>) =>
   describe(twMergePlugin.name, () => {
