@@ -8,7 +8,7 @@ import { testPlugin } from "./tw-merge-postcss-plugin";
 describe.sequential("tw-merge tooling", () => {
   testPlugin(writeConfig);
   testTwMerge(getConfig);
-  it("should cleanup", cleanup);
+  it(cleanup);
 });
 
 const GENERATED_DIR = "__generated";
