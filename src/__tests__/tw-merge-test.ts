@@ -58,4 +58,32 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       expect(twMerge("grow", null, false, "grow-[2]")).toBe("grow-[2]");
       expect(twMerge("grow-[2]", null, false, "grow")).toBe("grow");
     });
+
+    it("should double down as twJoin from tailwind-merge package", () => {
+      expect(twMerge("")).toBe("");
+      expect(twMerge("foo")).toBe("foo");
+      expect(twMerge(true && "foo")).toBe("foo");
+      expect(twMerge(null && "foo")).toBe("");
+      expect(twMerge("")).toBe("");
+      expect(twMerge("foo", "bar")).toBe("foo bar");
+      expect(twMerge(true && "foo", 0 && "bar", "baz")).toBe("foo baz");
+      expect(twMerge(false && "foo", "bar", "baz", "")).toBe("bar baz");
+    });
+
+    it("merges standalone classes from same group correctly", () => {
+      expect(twMerge("inline", "block")).toBe("block");
+      expect(twMerge("hover:block", "hover:inline")).toBe("hover:inline");
+      expect(twMerge("hover:block", "hover:block")).toBe("hover:block");
+      expect(
+        twMerge(
+          "inline",
+          "hover:inline",
+          "focus:inline",
+          "hover:block",
+          "hover:focus:block"
+        )
+      ).toBe("inline focus:inline hover:block hover:focus:block");
+      expect(twMerge("underline", "line-through")).toBe("line-through");
+      expect(twMerge("line-through", "no-underline")).toBe("no-underline");
+    });
   });

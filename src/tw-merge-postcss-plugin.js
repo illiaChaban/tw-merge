@@ -175,6 +175,7 @@ const myCustomPlugin = ({
           props: 
           ${rule.nodes.map((n) => n.prop + ": " + n.value).join(";\n ")}
 
+          ________________________________________________
         `);
       });
 

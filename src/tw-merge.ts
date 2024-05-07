@@ -8,6 +8,8 @@ type Falsy = null | undefined | 0 | "" | false;
 export const createTwMerge = (config: Config) => {
   if (!config) throw "No config";
 
+  // console.log({ ...config });
+
   return (...allClasses: (string | Falsy)[]) => {
     const currentStyles: Styles = {};
     /**
@@ -40,10 +42,12 @@ export const createTwMerge = (config: Config) => {
             Object.assign(currentStyles, config[c])
           );
         }
+        console.log("here!");
 
         const classes = getClasses(classNames);
         const nonConflictingClasses = classes.reverse().filter((c) => {
           const styles = config[c];
+          console.log({ c, styles, config });
           // propagate unknown styles, assume custom css classes or css modules
           if (!styles) return true;
           const entries = Object.entries(styles);
