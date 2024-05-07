@@ -5,7 +5,7 @@ type PropertyKey = string;
 type Order = number;
 type Falsy = null | undefined | 0 | "" | false;
 type Value = number;
-type Important = boolean;
+type Important = boolean | 0 | 1;
 
 export const createTwMerge = (config: Config) => {
   if (!config) throw "No config";
@@ -55,7 +55,7 @@ export const createTwMerge = (config: Config) => {
           const entries = Object.entries(styles);
           // adds some styles without overriding existing
           let addsStyle = false;
-          let addsImportant = false;
+          let addsImportant: Important = false;
           const noOverride = entries.every(([prop, map]) => {
             const noExistingStyle = currentStyles[prop] === undefined;
             addsStyle = addsStyle || noExistingStyle;

@@ -295,6 +295,7 @@ const minimizeConfig = (() => {
 
   const minimizeStringKey = createMinimizeKey(generateStringKey);
   const minimizeNumberKey = createMinimizeKey(generateNumberKey);
+  const minimizeBoolean = (value) => value ? 1 : 0
 
   return (config) => {
     /**
@@ -336,9 +337,9 @@ const minimizeConfig = (() => {
         const flatAffectedProps = Object.entries(locations).flatMap(
           ([location, props]) => {
             // update keys, encode location into prop key
-            return Object.entries(props).map(([prop, { v, ...map }]) => [
+            return Object.entries(props).map(([prop, { v, i, ...map }]) => [
               minimizeStringKey(location + ">>" + prop),
-              { v: minimizeNumberKey(v), ...map },
+              { v: minimizeNumberKey(v), i: minimizeBoolean(i), ...map },
             ]);
           }
         );
