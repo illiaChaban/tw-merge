@@ -1,7 +1,7 @@
 import { expect } from "vitest";
 import { TwMergeTest } from "./test-context";
 
-export const testImportantModifer: TwMergeTest = (it) => {
+export const testImportantModifier: TwMergeTest = (it) => {
   it("merges tailwind classes with important modifier correctly", ({
     twMerge,
   }) => {
