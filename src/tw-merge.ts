@@ -15,7 +15,7 @@ export const createTwMerge = (config: Config) => {
   if (!config) throw "No config";
 
   return (...allClasses: (string | Falsy)[]) => {
-    const log = logWhen(allClasses.at(-1) === "![display:inline-block]");
+    const log = logWhen(false);
     const currentStyles: Styles = {};
     /**
      TODO: performance

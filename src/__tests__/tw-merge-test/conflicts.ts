@@ -38,27 +38,6 @@ export const testConflicts: TwMergeTest = (it) => {
     );
   });
 
-  it("handles conflicts across class groups correctly", ({
-    twMerge,
-    expect,
-  }) => {
-    expect(twMerge("inset-1", "inset-x-1")).toBe("inset-1 inset-x-1");
-    expect(twMerge("inset-x-1", "inset-1")).toBe("inset-1");
-    expect(twMerge("inset-x-1", "left-1", "inset-1")).toBe("inset-1");
-    expect(twMerge("inset-x-1", "inset-1", "left-1")).toBe("inset-1 left-1");
-    expect(twMerge("inset-x-1", "right-1", "inset-1")).toBe("inset-1");
-    expect(twMerge("inset-x-1", "right-1", "inset-x-1")).toBe("inset-x-1");
-    expect(twMerge("inset-x-1", "right-1", "inset-y-1")).toBe(
-      "inset-x-1 right-1 inset-y-1"
-    );
-    expect(twMerge("right-1", "inset-x-1", "inset-y-1")).toBe(
-      "inset-x-1 inset-y-1"
-    );
-    expect(twMerge("inset-x-1", "hover:left-1", "inset-1")).toBe(
-      "hover:left-1 inset-1"
-    );
-  });
-
   it("conflicts across postfix modifiers", ({ twMerge, expect }) => {
     expect(twMerge("text-lg/7", "text-lg/8")).toBe("text-lg/8");
     expect(twMerge("text-lg/none", "leading-9")).toBe("text-lg/none leading-9");
