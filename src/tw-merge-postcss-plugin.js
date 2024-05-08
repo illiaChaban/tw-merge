@@ -144,7 +144,7 @@ const myCustomPlugin = ({
           `);
 
           const affectedPropsMap = Object.fromEntries(
-            affectedProps.flatMap(([prop, value]) => expandShorthand(prop).map(p => [p, { o: rulePriority, v: value, i: isImportant }]))
+            affectedProps.flatMap(expandShorthand).map(([p, value]) => [p, { o: rulePriority, v: value, i: isImportant }])
           );
 
           parsed[htmlClassName] ??= {};
@@ -207,14 +207,14 @@ const myCustomPlugin = ({
 };
 myCustomPlugin.postcss = true;
 
-const expandShorthand = (property) => {
+const expandShorthand = ([property, value]) => {
   // TODO: extend this
   const shorthands = {
     padding: ["padding-top", "padding-right", "padding-bottom", "padding-left"],
     margin: ["margin-top", "margin-right", "margin-bottom", "margin-left"],
     inset: ["top", "right", "bottom", "left"],
   };
-  return shorthands[property] ?? [property];
+  return shorthands[property]?.map(prop => [prop, value]) ?? [[property, value]];
 };
 
 const tryCreateDir = (dirPath) => {
