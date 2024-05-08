@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { Config, createTwMerge } from "../tw-merge";
+import { Config, TwMergeFn, createTwMerge } from "../../tw-merge";
+import { testArbitraryValues } from "./arbitrary-values";
+import { testArbitraryProperties } from "./arbitrary-properties";
+import { testImportantModifer } from "./important-modifer";
 
 export const testTwMerge = (getConfig: () => Promise<Config>) =>
   describe("tw-merge", () => {
@@ -10,6 +13,12 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       expect(Object.keys(config).includes("p-2")).toBe(true);
       twMerge = createTwMerge(config);
       expect(twMerge).toBeTypeOf("function");
+    });
+
+    const testTw = it.extend<{ twMerge: TwMergeFn }>({
+      twMerge: async ({}, use) => {
+        await use(twMerge);
+      },
     });
 
     it("should leave 1 string unchanged", () => {
@@ -117,15 +126,6 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       );
     });
 
-    it("merges tailwind classes with important modifier correctly", () => {
-      expect(twMerge("!font-medium", "!font-bold")).toBe("!font-bold");
-      expect(twMerge("!font-medium", "!font-bold", "font-thin")).toBe(
-        "!font-bold font-thin"
-      );
-      expect(twMerge("!right-2", "!-inset-x-px")).toBe("!-inset-x-px");
-      expect(twMerge("focus:!inline", "focus:!block")).toBe("focus:!block");
-    });
-
     it("merges content utilities correctly", () => {
       expect(twMerge("content-['hello']", "content-[attr(data-content)]")).toBe(
         "content-[attr(data-content)]"
@@ -228,67 +228,16 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       );
     });
 
-    /** Arbitrary properties */
-    it("handles arbitrary property conflicts correctly", () => {
-      expect(twMerge("[paint-order:markers]", "[paint-order:normal]")).toBe(
-        "[paint-order:normal]"
-      );
-      expect(
-        twMerge(
-          "[paint-order:markers]",
-          "[--my-var:2rem]",
-          "[paint-order:normal]",
-          "[--my-var:4px]"
-        )
-      ).toBe("[paint-order:normal] [--my-var:4px]");
-    });
+    testArbitraryProperties(testTw);
 
-    it("handles arbitrary property conflicts with modifiers correctly", () => {
-      expect(
-        twMerge("[paint-order:markers]", "hover:[paint-order:normal]")
-      ).toBe("[paint-order:markers] hover:[paint-order:normal]");
-      expect(
-        twMerge("hover:[paint-order:markers]", "hover:[paint-order:normal]")
-      ).toBe("hover:[paint-order:normal]");
-      expect(
-        twMerge(
-          "hover:focus:[paint-order:markers]",
-          "focus:hover:[paint-order:normal]"
-        )
-      ).toBe("focus:hover:[paint-order:normal]");
-      expect(
-        twMerge(
-          "[paint-order:markers]",
-          "[paint-order:normal]",
-          "[--my-var:2rem]",
-          "lg:[--my-var:4px]"
-        )
-      ).toBe("[paint-order:normal] [--my-var:2rem] lg:[--my-var:4px]");
-    });
+    testImportantModifer(testTw);
 
-    it("handles complex arbitrary property conflicts correctly", () => {
-      expect(twMerge("[src:local(serif)]", "[src:url(https://hi.com)]")).toBe(
-        "[src:url(https://hi.com)]"
-      );
-      expect(twMerge("[src:url(https://hi.com)]", "[src:local(serif)]")).toBe(
-        "[src:local(serif)]"
-      );
-    });
+    testArbitraryValues(testTw);
 
-    it("handles important modifier correctly", () => {
-      expect(twMerge("![display:block]", "[display:inherit]")).toBe(
-        "![display:block] [display:inherit]"
-      );
-      expect(
-        twMerge(
-          "![display:block]",
-          "[display:inherit]",
-          "[display:inline]",
-          "![display:inline-block]"
-        )
-      ).toBe("[display:inline] ![display:inline-block]");
-    });
-    /** */
+    // In order to sequentially access newly create tw-merge, it needs to be inside another test block
+    // testArbitraryValues(() => twMerge))
+
+    /** Arbitrary values */
 
     // TODO
 

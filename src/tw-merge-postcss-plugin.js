@@ -94,25 +94,10 @@ const myCustomPlugin = ({
       root.walkRules((rule) => {
         const isClass = rule.selector[0] === ".";
         const classCandidate = rule.raws?.tailwind?.classCandidate;
-        // console.log(rule)
-        // console.log({ isClass, classCandidate, raws: JSON.stringify(rule.raws ?? {}) })
         if (!isClass || !classCandidate) return;
 
-        // Tailwind metadata doesn't automatically include "!" important in classCandidate
-        const isImportant = rule.selector[rule.selector.indexOf(classCandidate) - 1] === '!'
-        const mainClassName = isImportant ? '!' + classCandidate : classCandidate
-
         rulePriority++;
-        const affectedProps = rule.nodes
-          // ignore all "set up" props that just set up values as variables, since they can be duplicated & overriden
-          // by multiple classes with no effect on final design
-          // example: content: var(--tw-content)
-          // filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)
-          // .filter((n) => n.value.replaceAll(/var\(--.+?\)/g, "").trim() !== "")
-          .map((n) => [n.prop, n.value]);
-        const affectedPropsMap = Object.fromEntries(
-          affectedProps.flatMap(([prop, value]) => expandShorthand(prop).map(p => [p, { o: rulePriority, v: value, i: isImportant }]))
-        );
+        const affectedProps = rule.nodes.map((n) => [n.prop, n.value]);
 
         const classes = rule.selector
           .replaceAll("\\", "")
@@ -136,6 +121,9 @@ const myCustomPlugin = ({
         `);
 
         classes.forEach((c) => {
+          // Tailwind metadata doesn't automatically include "!" important in classCandidate
+          const isImportant = c[c.indexOf(classCandidate) - 1] === '!'
+          const mainClassName = isImportant ? '!' + classCandidate : classCandidate
           const splitter = c.startsWith(mainClassName)
             ? mainClassName
             : ":" + mainClassName;
@@ -152,10 +140,16 @@ const myCustomPlugin = ({
           const pseudoElement = cssModifiers
             ?.split?.("::")[1]
             ?.split?.(":")?.[0];
+
           console.log(`
-          twModifiers: ${sortedModifers.split(":").join(", ")}
-          pseudoElement: ${pseudoElement}
+            ${JSON.stringify({ splitter, mainClassName, isImportant })}
+            twModifiers: ${sortedModifers.split(":").join(", ")}
+            pseudoElement: ${pseudoElement}
           `);
+
+          const affectedPropsMap = Object.fromEntries(
+            affectedProps.flatMap(([prop, value]) => expandShorthand(prop).map(p => [p, { o: rulePriority, v: value, i: isImportant }]))
+          );
 
           parsed[htmlClassName] ??= {};
           /** 
@@ -221,7 +215,8 @@ const expandShorthand = (property) => {
   // TODO: extend this
   const shorthands = {
     padding: ["padding-top", "padding-right", "padding-bottom", "padding-left"],
-    inset: ["top", "right", "bottom", "left"]
+    margin: ["margin-top", "margin-right", "margin-bottom", "margin-left"],
+    inset: ["top", "right", "bottom", "left"],
   };
   return shorthands[property] ?? [property];
 };

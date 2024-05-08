@@ -18,7 +18,7 @@ export const testPlugin = (writeConfig: (data: Config) => Promise<void>) =>
 
       const processed = await postcss([
         tailwindcss({
-          content: [__dirname + "/tw-merge-test.ts"],
+          content: [__dirname + "/tw-merge-test/**/*.ts"],
           theme: {
             extend: {
               colors: {
@@ -53,7 +53,7 @@ export const testPlugin = (writeConfig: (data: Config) => Promise<void>) =>
         }),
       ]).process(inputCss, { from: undefined });
 
-      console.log(processed.css);
+      // console.log(processed.css);
 
       const config = twConfig!;
 

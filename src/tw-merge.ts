@@ -7,6 +7,8 @@ type Falsy = null | undefined | 0 | "" | false;
 type Value = string | number;
 type Important = boolean | 0 | 1;
 
+export type TwMergeFn = ReturnType<typeof createTwMerge>;
+
 // TODO: is storing value even needed?
 
 export const createTwMerge = (config: Config) => {
@@ -50,7 +52,7 @@ export const createTwMerge = (config: Config) => {
         const classes = getClasses(classNames);
         const nonConflictingClasses = classes.reverse().filter((c) => {
           const styles = config[c];
-          log({ c, styles, config });
+          // log({ c, styles, config });
           // propagate unknown styles, assume custom css classes or css modules
           if (!styles) return true;
           const entries = Object.entries(styles);
