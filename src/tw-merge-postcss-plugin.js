@@ -186,8 +186,8 @@ const myCustomPlugin = ({
 
       // `);
 
-      // const minimized = minimizeConfig(flattenConfig(parsed));
-      const minimized = flattenConfig(parsed);
+      const minimized = minimizeConfig(flattenConfig(parsed));
+      // const minimized = flattenConfig(parsed);
 
       // console.log(`
 
