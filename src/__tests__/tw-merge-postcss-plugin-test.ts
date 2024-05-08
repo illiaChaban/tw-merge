@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 // @ts-expect-error
 import twMergePlugin from "../tw-merge-postcss-plugin.js";
 import { Config } from "../tw-merge.js";
+import { customTwPlugin } from "./tw-merge-test/custom-plugins";
 
 export const testPlugin = (writeConfig: (data: Config) => Promise<void>) =>
   describe(twMergePlugin.name, () => {
@@ -26,25 +27,7 @@ export const testPlugin = (writeConfig: (data: Config) => Promise<void>) =>
               },
             },
           },
-          plugins: [
-            ({ addUtilities }: any) => {
-              addUtilities({
-                ".no-scrollbar": {
-                  "scrollbar-width": "none",
-                  "-ms-overflow-style": "none",
-                  "&::-webkit-scrollbar": {
-                    display: "none",
-                  },
-                },
-                ".all-unset": {
-                  all: "unset",
-                },
-                ".all-inherit": {
-                  all: "inherit",
-                },
-              });
-            },
-          ],
+          plugins: [customTwPlugin],
         }),
         twMergePlugin({
           onParsed: (data: any) => {

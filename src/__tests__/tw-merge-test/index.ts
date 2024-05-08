@@ -3,6 +3,7 @@ import { Config, TwMergeFn, createTwMerge } from "../../tw-merge";
 import { testArbitraryValues } from "./arbitrary-values";
 import { testArbitraryProperties } from "./arbitrary-properties";
 import { testImportantModifer } from "./important-modifer";
+import { testCustomPlugins } from "./custom-plugins";
 
 export const testTwMerge = (getConfig: () => Promise<Config>) =>
   describe("tw-merge", () => {
@@ -15,7 +16,8 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       expect(twMerge).toBeTypeOf("function");
     });
 
-    const testTw = it.extend<{ twMerge: TwMergeFn }>({
+    // Extended test to access twMerge in other tests through context
+    const contextTest = it.extend<{ twMerge: TwMergeFn }>({
       twMerge: async ({}, use) => {
         await use(twMerge);
       },
@@ -40,19 +42,17 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       );
     });
 
-    it("supports custom plugins", () => {
-      expect(twMerge("all-unset", "all-inherit")).toBe("all-inherit");
-      expect(twMerge("all-inherit", "all-unset")).toBe("all-unset");
-    });
+    testCustomPlugins(contextTest);
 
-    it(`
-      should treat each passed in string as already checked for conflicts (by linter)
-      and avoid comparing classes from 1 string to each other
-    `, () => {
-      // px-4 p-2 + pb-6 --> px-4 p-2 pb-6, NOT( p-2 pb-6 )
-      // Rusulting padding styles: 2 4 6 4, NOT( 2 2 6 2 )
-      expect(twMerge("px-4 p-2", "pb-6")).toBe("px-4 p-2 pb-6");
-    });
+    it(
+      "should treat each passed in string as already checked for conflicts (by linter) " +
+        "and avoid comparing classes from 1 string to each other",
+      () => {
+        // px-4 p-2 + pb-6 --> px-4 p-2 pb-6, NOT( p-2 pb-6 )
+        // Rusulting padding styles: 2 4 6 4, NOT( 2 2 6 2 )
+        expect(twMerge("px-4 p-2", "pb-6")).toBe("px-4 p-2 pb-6");
+      }
+    );
 
     it("should for simple cases work", () => {
       expect(twMerge("mix-blend-normal", "mix-blend-multiply")).toBe(
@@ -228,11 +228,11 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
       );
     });
 
-    testArbitraryProperties(testTw);
+    testArbitraryProperties(contextTest);
 
-    testImportantModifer(testTw);
+    testImportantModifer(contextTest);
 
-    testArbitraryValues(testTw);
+    testArbitraryValues(contextTest);
 
     // In order to sequentially access newly create tw-merge, it needs to be inside another test block
     // testArbitraryValues(() => twMerge))
