@@ -24,7 +24,7 @@
     "type": "git",
     "url": "https://github.com/illiaChaban/tw-merge"
   },
-  "name": "@illlia/ts-merge",
+  "name": "tw-merge",
   "version": "0.0.1",
   "description": "tw-merge",
   "main": "dist/index.js",

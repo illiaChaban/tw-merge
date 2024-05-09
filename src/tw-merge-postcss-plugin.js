@@ -228,7 +228,7 @@ const tryCreateDir = (dirPath) => {
   }
 };
 
-export const writeConfigToFile = (data, path) => {
+const writeConfigToFile = (data, path) => {
   const split = path.split("/");
   const filePath = split.at(-1);
   const dirPath = split.slice(0, split.length - 1).join("/");
