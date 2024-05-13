@@ -186,7 +186,7 @@ const myCustomPlugin = ({
 
       // `);
 
-      const minimized = minimizeConfig(flattenConfig(parsed));
+      const minimized = compressConfig(flattenConfig(parsed));
       // const minimized = flattenConfig(parsed);
 
       // console.log(`
@@ -253,7 +253,7 @@ const flattenConfig = (config) => {
   return Object.fromEntries(configEntries);
 }
 
-const minimizeConfig = (() => {
+const compressConfig = (() => {
   const generateStringKey = (() => {
     const alphabet = "abcdefghijklmnopqrstuvwxyz";
     const numbers = "0123456789";
