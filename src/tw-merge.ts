@@ -11,8 +11,6 @@ type Important = boolean | 0 | 1;
 
 export type TwMergeFn = ReturnType<typeof createTwMerge>;
 
-// TODO: is storing value even needed?
-
 export const createTwMerge = (config: Config) => {
   if (!config) throw "No config";
 
@@ -57,8 +55,7 @@ export const createTwMerge = (config: Config) => {
             addsImportant = !currentStyles[prop]?.i && map.i;
             return (
               noExistingStyle ||
-              // TODO: is this needed?
-              // currentStyles[prop].v === map.v ||
+              currentStyles[prop].v === map.v ||
               currentStyles[prop].o > map.o
             );
           });

@@ -28,5 +28,5 @@
   "version": "0.0.1",
   "description": "tw-merge",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts"
+  "types": "src/index.ts"
 }

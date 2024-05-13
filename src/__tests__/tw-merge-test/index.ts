@@ -13,6 +13,7 @@ import { testConflicts } from "./conflicts";
 import { testPseudoVariants } from "./pseudo-variants";
 import { testLineClamp } from "./line-clamp";
 import { testClassGroupsConflicts } from "./class-groups-conflicts";
+import { testPseudoElements } from "./pseudo-elements";
 
 export const testTwMerge = (getConfig: () => Promise<Config>) =>
   describe("tw-merge", () => {
@@ -36,6 +37,7 @@ export const testTwMerge = (getConfig: () => Promise<Config>) =>
     [
       testBasicFunctionality,
       testConflicts,
+      testPseudoElements,
       testMergeChunks,
       testPseudoVariants,
       testStandaloneClasses,
