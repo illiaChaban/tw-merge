@@ -1,7 +1,15 @@
 import { logWhen } from "./utils/log-when";
+import { mapValues } from "./utils/map-values";
 
-export type CompressedConfig = Record<ClassName, Styles>;
-export type Styles = Record<PropertyKey, { o: Order; v: Value; i?: Important }>;
+export type CompressedConfig = Record<ClassName, CompressedStyles>;
+export type CompressedStyles = Array<
+  [PropertyKey[] | PropertyKey, PropMetadata]
+>;
+
+export type PropMetadata = { o: Order; v: Value; i?: Important };
+
+type UncompressedConfig = Record<ClassName, Styles>;
+type Styles = Record<PropertyKey, PropMetadata>;
 type ClassName = string;
 type PropertyKey = string;
 type Order = number;
@@ -12,8 +20,19 @@ type Falsy = null | undefined | 0 | "" | false;
 
 export type TwMergeFn = ReturnType<typeof createTwMerge>;
 
-export const createTwMerge = (config: CompressedConfig) => {
-  if (!config) throw "No config";
+export const createTwMerge = (compressedConfig: CompressedConfig) => {
+  if (!compressedConfig) throw "No config";
+
+  const config: UncompressedConfig = mapValues(compressedConfig, (styles) => {
+    const obj: Styles = {};
+    styles.forEach(([props, values]) => {
+      const p: PropertyKey[] = Array.isArray(props) ? props : [props];
+      p.forEach((p) => {
+        obj[p] = values;
+      });
+    });
+    return obj;
+  });
 
   return (...allClasses: (string | Falsy)[]) => {
     const log = logWhen(false);

@@ -43,7 +43,7 @@ export const testPlugin = (
 
       expect(isEmpty(config)).toBe(false);
 
-      console.log(config);
+      console.log(JSON.stringify(config));
 
       await writeConfig(config);
     });

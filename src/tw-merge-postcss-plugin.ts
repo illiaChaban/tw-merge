@@ -1,5 +1,5 @@
 import { Declaration, PluginCreator } from "postcss";
-import { CompressedConfig } from "./tw-merge";
+import { CompressedConfig, CompressedStyles, PropMetadata } from "./tw-merge";
 import { logWhen } from "./utils/log-when";
 
 /**
@@ -301,7 +301,7 @@ const compressConfig = (() => {
   return (config: PreprocessedConfig): CompressedConfig => {
     // TODO: replace with mapValues
     const configEntries = Object.entries(config).map(([className, props]) => {
-      const e = Object.entries(props).map(([prop, { v, i, o }]) => {
+      const entries = Object.entries(props).map(([prop, { v, i, o }]) => {
         // update keys, encode location into prop key
         return [
           minimizeStringKey(prop),
@@ -313,11 +313,32 @@ const compressConfig = (() => {
           },
         ];
       });
-      return [className, Object.fromEntries(e)];
+      // return [className, Object.fromEntries(e)];
+      // combine / minimize entries
+      const combinedEntries = entries.reduce((acc, [prop, values]) => {
+        const i = acc.findIndex(([, existingValues]) =>
+          valuesAreEqual(existingValues, values as PropMetadata)
+        );
+        if (i !== -1) {
+          const entry = acc[i];
+          if (typeof entry[0] === "string") entry[0] = [entry[0]];
+          entry[0].push(prop as string);
+        } else {
+          // new entry
+          // @ts-ignore
+          acc.push([prop, values]);
+        }
+        return acc;
+      }, [] as CompressedStyles);
+
+      return [className, combinedEntries];
     });
     return Object.fromEntries(configEntries);
   };
 })();
+
+const valuesAreEqual = (a: PropMetadata, b: PropMetadata) =>
+  a.i === b.i && a.v === b.v && a.o === b.o;
 
 const panic = (errorMsg: string) => {
   throw new Error(errorMsg);
