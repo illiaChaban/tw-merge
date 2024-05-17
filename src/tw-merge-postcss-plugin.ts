@@ -1,4 +1,6 @@
-const fs = require("fs");
+import fs from "fs/promises";
+import { Declaration, PluginCreator } from "postcss";
+import { Config } from "./tw-merge";
 
 /**
 
@@ -52,11 +54,16 @@ TODO: handle !important modifier correctly (may not adhere to order rule)
 TODO: how much perf did i save by minimizing ? compare minimized VS non-minimized config
  */
 
-const myCustomPlugin = ({
-  onParsed = (data) =>
-    writeConfigToFile(data, __dirname + "/../test/_generated/tw-config.ts"),
-} = {}) => {
+// (data: Config) =>
+// writeConfigToFile(data, __dirname + "/../test/_generated/tw-config.ts")
 
+const cssMergePlugin: PluginCreator<{
+  onParsed: (data: Config) => void;
+}> = (
+  { onParsed } = {
+    onParsed: () => panic("onParsed is not defined"),
+  }
+) => {
   console.log(`
   
   
@@ -75,7 +82,7 @@ const myCustomPlugin = ({
       ONCE
       
       
-      `,
+      `
         // root,
         // result
       );
@@ -87,17 +94,22 @@ const myCustomPlugin = ({
        * type AffectedProperties = {[prop]: priority}
        */
 
-      const parsed = {};
+      const parsed: DeepConfig = {};
 
       /** Is keeping track of this even useful? */
       let rulePriority = 0;
       root.walkRules((rule) => {
         const isClass = rule.selector[0] === ".";
-        const classCandidate = rule.raws?.tailwind?.classCandidate;
+        // TODO: remove reliance on tailwind preprocessing
+        // @ts-ignore
+        const classCandidate = rule.raws?.tailwind?.classCandidate as string;
         if (!isClass || !classCandidate) return;
 
         rulePriority++;
-        const affectedProps = rule.nodes.map((n) => [n.prop, n.value]);
+        const affectedProps = rule.nodes
+          // TODO: handle other cases
+          .filter((n): n is Declaration => n instanceof Declaration)
+          .map((n) => [n.prop, n.value]);
 
         const classes = rule.selector
           .replaceAll("\\", "")
@@ -105,12 +117,12 @@ const myCustomPlugin = ({
           .map((c) => {
             // get "actionable" class from group-*, peer-* etc.
             // Ex. group:hover .dark .group-hover\:dark\:opacity-100
-            c = c.includes(' ') ? c.split(' ').at(-1) : c
+            c = c.includes(" ") ? c.split(" ").at(-1)! : c;
             // remove "." before class name
-            return c.slice(1)
+            return c.slice(1);
           });
 
-        const LOG = logWhen(classes.includes('group'))
+        const LOG = logWhen(false);
         LOG(`
           Processing rule: ${classes.join(" ")}
           affected props: ${JSON.stringify(affectedProps)}
@@ -118,14 +130,16 @@ const myCustomPlugin = ({
 
         classes.forEach((c) => {
           // Tailwind metadata doesn't automatically include "!" important in classCandidate
-          const isImportant = c[c.indexOf(classCandidate) - 1] === '!'
-          const mainClassName = isImportant ? '!' + classCandidate : classCandidate
+          const isImportant = c[c.indexOf(classCandidate) - 1] === "!";
+          const mainClassName = isImportant
+            ? "!" + classCandidate
+            : classCandidate;
           const splitter = c.startsWith(mainClassName)
             ? mainClassName
             : ":" + mainClassName;
           const [twModifiers, cssModifiers, ...rest] = c.split(splitter);
           /** Order of modifers generally shouldn't matter */
-          const sortedModifers = twModifiers.split(':').sort().join(':')
+          const sortedModifers = twModifiers.split(":").sort().join(":");
           /** Classname the way it's displayed in html */
           const htmlClassName = c.slice(
             0,
@@ -144,7 +158,13 @@ const myCustomPlugin = ({
           `);
 
           const affectedPropsMap = Object.fromEntries(
-            affectedProps.flatMap(expandShorthand).map(([p, value]) => [p, { o: rulePriority, v: value, i: isImportant }])
+            affectedProps
+              // @ts-ignore
+              .flatMap(expandShorthand)
+              .map(([p, value]) => [
+                p,
+                { o: rulePriority, v: value, i: isImportant },
+              ])
           );
 
           parsed[htmlClassName] ??= {};
@@ -166,9 +186,14 @@ const myCustomPlugin = ({
 
         LOG(`
           raws: ${JSON.stringify(rule.raws)}
-          classCandidate: ${rule.raws?.tailwind?.classCandidate}
+          classCandidate: ${
+            // @ts-ignore
+            rule.raws?.tailwind?.classCandidate
+          }
           props: 
-          ${rule.nodes.map((n) => n.prop + ": " + n.value).join(";\n ")}
+          ${affectedProps
+            .map(([prop, value]) => prop + ": " + value)
+            .join(";\n ")}
 
           ________________________________________________
         `);
@@ -182,8 +207,6 @@ const myCustomPlugin = ({
       // Parsed:
       // ${JSON.stringify(parsed)}
 
-
-
       // `);
 
       const minimized = compressConfig(flattenConfig(parsed));
@@ -191,11 +214,8 @@ const myCustomPlugin = ({
 
       // console.log(`
 
-
       // Minimized:
       // ${JSON.stringify(minimized)}
-
-
 
       // `);
 
@@ -205,53 +225,77 @@ const myCustomPlugin = ({
     },
   };
 };
-myCustomPlugin.postcss = true;
+cssMergePlugin.postcss = true;
 
-const expandShorthand = ([property, value]) => {
+export default cssMergePlugin;
+
+const expandShorthand = ([property, value]: [string, string]) => {
   // TODO: extend this
   const shorthands = {
     padding: ["padding-top", "padding-right", "padding-bottom", "padding-left"],
     margin: ["margin-top", "margin-right", "margin-bottom", "margin-left"],
     inset: ["top", "right", "bottom", "left"],
   };
-  return shorthands[property]?.map(prop => [prop, value]) ?? [[property, value]];
-};
-
-const tryCreateDir = (dirPath) => {
-  try {
-    // Try to access the directory
-    fs.accessSync(dirPath);
-  } catch (error) {
-    // If the directory does not exist, create it
-    fs.mkdirSync(dirPath, { recursive: true });
-    // console.log('Directory created:', dirPath);
-  }
-};
-
-const writeConfigToFile = (data, path) => {
-  const split = path.split("/");
-  const filePath = split.at(-1);
-  const dirPath = split.slice(0, split.length - 1).join("/");
-  // const dirPath = __dirname + '/../test/_generated'
-  // dirPath + '/tw-config.ts'
-  tryCreateDir(dirPath);
-  fs.writeFileSync(
-    `${dirPath}/${filePath}`,
-    `export default ${JSON.stringify(data)};`
+  return (
+    // @ts-ignore
+    shorthands[property]?.map((prop) => [prop, value]) ?? [[property, value]]
   );
 };
 
-const flattenConfig = (config) => {
+// const tryCreateDir = async (dirPath: string) => {
+//   try {
+//     // Try to access the directory
+//     await fs.access(dirPath);
+//   } catch (error) {
+//     // If the directory does not exist, create it
+//     await fs.mkdir(dirPath, { recursive: true });
+//     // console.log('Directory created:', dirPath);
+//   }
+// };
+
+// const writeConfigToFile = async (data, path) => {
+//   const split = path.split("/");
+//   const filePath = split.at(-1);
+//   const dirPath = split.slice(0, split.length - 1).join("/");
+//   // const dirPath = __dirname + '/../test/_generated'
+//   // dirPath + '/tw-config.ts'
+//   await tryCreateDir(dirPath);
+//   fs.writeFileSync(
+//     `${dirPath}/${filePath}`,
+//     `export default ${JSON.stringify(data)};`
+//   );
+// };
+
+type DeepConfig = Record<
+  ClassName,
+  Record<ElementLocation, Record<PropertyKey, Styles>>
+>;
+
+type PreprocessedConfig = Record<ClassName, Styles>;
+type Styles = Record<PropertyKey, { o: Order; v: Value; i?: Important }>;
+type ClassName = string;
+type PropertyKey = string;
+type ElementLocation = "root" | string;
+type Order = number;
+// type Falsy = null | undefined | 0 | "" | false;
+type Value = string;
+type Important = boolean;
+
+const flattenConfig = (config: DeepConfig): PreprocessedConfig => {
   const configEntries = Object.entries(config)
     // flat / expand locations
     .map(([className, locations]) => {
       const flatAffectedProps = Object.entries(locations).flatMap(
-        ([location, props]) => Object.entries(props).map(([prop, map]) => [location + ">>" + prop, map])
+        ([location, props]) =>
+          Object.entries(props).map(([prop, map]) => [
+            location + ">>" + prop,
+            map,
+          ])
       );
       return [className, Object.fromEntries(flatAffectedProps)];
     });
   return Object.fromEntries(configEntries);
-}
+};
 
 const compressConfig = (() => {
   const generateStringKey = (() => {
@@ -291,19 +335,19 @@ const compressConfig = (() => {
     return () => ++count;
   })();
 
-  const createMinimizeKey = (keyGenerator) => {
-    const cache = {};
-    return (key) => {
+  const createMinimizeKey = (keyGenerator: () => string | number) => {
+    const cache = {} as Record<string | number, string | number>;
+    return (key: string | number) => {
       cache[key] ??= keyGenerator();
       return cache[key];
     };
-  }
+  };
 
   const minimizeStringKey = createMinimizeKey(generateStringKey);
   const minimizeNumberKey = createMinimizeKey(generateNumberKey);
-  const minimizeBoolean = (value) => value ? 1 : 0
+  const minimizeBoolean = (value: boolean) => (value ? 1 : 0);
 
-  return (config) => {
+  return (config: PreprocessedConfig) => {
     /**
       map {
         [className]: {
@@ -355,30 +399,31 @@ const compressConfig = (() => {
     // return Object.fromEntries(configEntries);
 
     // TODO: replace with mapValues
-    const configEntries = Object.entries(config)
-      .map(([className, props]) => {
-        const e = Object.entries(props).map(
-          ([prop, { v, i, o }]) => {
-            // update keys, encode location into prop key
-            return [
-              minimizeStringKey(prop),
-              {
-                v: minimizeNumberKey(v),
-                // avoid adding "important" to config when it's false 
-                ...(i && { i: 1 }),
-                o,
-              },
-            ];
-          }
-        );
-        return [className, Object.fromEntries(e)]
+    const configEntries = Object.entries(config).map(([className, props]) => {
+      const e = Object.entries(props).map(([prop, { v, i, o }]) => {
+        // update keys, encode location into prop key
+        return [
+          minimizeStringKey(prop),
+          {
+            v: minimizeNumberKey(v),
+            // avoid adding "important" to config when it's false
+            ...(i && { i: 1 }),
+            o,
+          },
+        ];
       });
+      return [className, Object.fromEntries(e)];
+    });
     return Object.fromEntries(configEntries);
   };
 })();
 
-const logWhen = (condition) => (...args) => {
-  if (condition) console.log(...args)
-}
+const logWhen =
+  (condition: unknown) =>
+  (...args: any[]) => {
+    if (condition) console.log(...args);
+  };
 
-module.exports = myCustomPlugin;
+const panic = (errorMsg: string) => {
+  throw new Error(errorMsg);
+};

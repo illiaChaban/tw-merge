@@ -1,8 +1,7 @@
 import postcss from "postcss";
 import tailwindcss from "tailwindcss";
 import { describe, expect, it } from "vitest";
-// @ts-expect-error
-import twMergePlugin from "../tw-merge-postcss-plugin.js";
+import twMergePlugin from "../tw-merge-postcss-plugin";
 import { Config } from "../tw-merge.js";
 import { customTwPlugin } from "./tw-merge-test/custom-plugins";
 
