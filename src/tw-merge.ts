@@ -2,9 +2,14 @@ import { logWhen } from "./utils/log-when";
 import { mapValues } from "./utils/map-values";
 
 export type CompressedConfig = Record<ClassName, CompressedStyles>;
-export type CompressedStyles = Array<
-  [PropertyKey[] | PropertyKey, Value, Order, Important?]
->;
+export type CompressedStyles = Array<UnwrappedData> | UnwrappedData;
+
+export type UnwrappedData = [
+  PropertyKey[] | PropertyKey,
+  Value,
+  Order,
+  Important?
+];
 
 export type PropMetadata = [Value, Order, Important?];
 
@@ -20,17 +25,26 @@ type Falsy = null | undefined | 0 | "" | false;
 
 export type TwMergeFn = ReturnType<typeof createTwMerge>;
 
+export const isUnwrapped = (
+  styles: CompressedStyles
+): styles is UnwrappedData => typeof styles[1] === "number";
+
 export const createTwMerge = (compressedConfig: CompressedConfig) => {
   if (!compressedConfig) throw "No config";
 
   const config: UncompressedConfig = mapValues(compressedConfig, (styles) => {
     const obj: Styles = {};
-    styles.forEach(([props, ...values]) => {
+    const populateObj = ([props, ...values]: UnwrappedData) => {
       const p: PropertyKey[] = Array.isArray(props) ? props : [props];
       p.forEach((p) => {
         obj[p] = values;
       });
-    });
+    };
+    if (isUnwrapped(styles)) {
+      populateObj(styles);
+    } else {
+      styles.forEach(populateObj);
+    }
     return obj;
   });
 

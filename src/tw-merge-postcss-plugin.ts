@@ -1,5 +1,10 @@
 import { Declaration, PluginCreator } from "postcss";
-import { CompressedConfig, CompressedStyles, PropMetadata } from "./tw-merge";
+import {
+  CompressedConfig,
+  CompressedStyles,
+  PropMetadata,
+  UnwrappedData,
+} from "./tw-merge";
 import { logWhen } from "./utils/log-when";
 
 /**
@@ -330,9 +335,13 @@ const compressConfig = (() => {
           acc.push([prop, ...values]);
         }
         return acc;
-      }, [] as CompressedStyles);
+      }, [] as UnwrappedData[]);
 
-      return [className, combinedEntries];
+      return [
+        className,
+        // unwrap
+        combinedEntries.length === 1 ? combinedEntries[0] : combinedEntries,
+      ];
     });
     return Object.fromEntries(configEntries);
   };
