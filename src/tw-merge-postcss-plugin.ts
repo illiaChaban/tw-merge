@@ -1,11 +1,11 @@
 import { Declaration, PluginCreator } from "postcss";
 import {
   CompressedConfig,
-  CompressedStyles,
   PropMetadata,
-  UnwrappedData,
+  SPECIAL_SPLIT_CHART,
 } from "./tw-merge";
 import { logWhen } from "./utils/log-when";
+import { assert } from "./utils/assert";
 
 /**
 
@@ -261,7 +261,13 @@ const compressConfig = (() => {
     const alphabet = "abcdefghijklmnopqrstuvwxyz";
     const numbers = "0123456789";
     const specialChars = "+=_-)(*&^%$#@!~,.<>/?:;[]{}|";
-    const chars = alphabet + alphabet.toUpperCase() + numbers + specialChars;
+    const chars = (
+      alphabet +
+      alphabet.toUpperCase() +
+      numbers +
+      specialChars
+    ).replaceAll(SPECIAL_SPLIT_CHART, "");
+    assert(!chars.includes(SPECIAL_SPLIT_CHART));
     const l = chars.length;
 
     let count = -1;
@@ -310,37 +316,44 @@ const compressConfig = (() => {
         // update keys, encode location into prop key
         return [
           minimizeStringKey(prop),
-          [minimizeNumberKey(v), o].concat(i ? [1] : []),
-          // {
-          //   v: minimizeNumberKey(v),
-          //   // avoid adding "important" to config when it's false
-          //   ...(i && { i: 1 }),
-          //   o,
-          // },
-        ];
+          // [minimizeNumberKey(v), o].concat(i ? [1] : []),
+          {
+            v: minimizeNumberKey(v) as number,
+            i: minimizeBoolean(i ?? false),
+            // avoid adding "important" to config when it's false
+            // ...(i && { i: 1 }),
+            o,
+          },
+        ] as const;
       });
       // return [className, Object.fromEntries(e)];
       // combine / minimize entries
       const combinedEntries = entries.reduce((acc, [prop, values]) => {
-        const i = acc.findIndex(([prop, ...existingValues]) =>
+        const i = acc.findIndex(([, existingValues]) =>
           valuesAreEqual(existingValues, values as PropMetadata)
         );
         if (i !== -1) {
           const entry = acc[i];
-          if (typeof entry[0] === "string") entry[0] = [entry[0]];
           entry[0].push(prop as string);
         } else {
           // new entry
-          // @ts-ignore
-          acc.push([prop, ...values]);
+          acc.push([[prop as string], values as any]);
         }
+
         return acc;
-      }, [] as UnwrappedData[]);
+      }, [] as Array<[string[], PropMetadata]>);
+
+      const joined = combinedEntries.flatMap(([props, values]) => [
+        props.join(SPECIAL_SPLIT_CHART),
+        values.v,
+        values.o,
+        values.i,
+      ]);
 
       return [
         className,
-        // unwrap
-        combinedEntries.length === 1 ? combinedEntries[0] : combinedEntries,
+        // remove last important value only when it's 0 (can be omitted)
+        joined.at(-1) === 0 ? joined.slice(0, joined.length - 1) : joined,
       ];
     });
     return Object.fromEntries(configEntries);
@@ -348,7 +361,7 @@ const compressConfig = (() => {
 })();
 
 const valuesAreEqual = (a: PropMetadata, b: PropMetadata) =>
-  a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+  a.v === b.v && a.o === b.o && a.i === b.i;
 
 const panic = (errorMsg: string) => {
   throw new Error(errorMsg);

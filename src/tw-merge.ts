@@ -2,21 +2,19 @@ import { logWhen } from "./utils/log-when";
 import { mapValues } from "./utils/map-values";
 
 export type CompressedConfig = Record<ClassName, CompressedStyles>;
-export type CompressedStyles = Array<UnwrappedData> | UnwrappedData;
+/** [...([PropertyKeys, Value, Order, Important?][])] */
+export type CompressedStyles = (PropertyKeys | Value | Order | Important)[];
 
-export type UnwrappedData = [
-  PropertyKey[] | PropertyKey,
-  Value,
-  Order,
-  Important?
-];
+type CompressedPropMetadata = [PropertyKeys, Value, Order, Important?];
 
-export type PropMetadata = [Value, Order, Important?];
+export type PropMetadata = { v: Value; o: Order; i?: Important };
 
 type UncompressedConfig = Record<ClassName, Styles>;
 type Styles = Record<PropertyKey, PropMetadata>;
 type ClassName = string;
 type PropertyKey = string;
+/** Property keys split by special char */
+type PropertyKeys = string;
 type Order = number;
 type Value = number;
 type Important = 1;
@@ -25,26 +23,28 @@ type Falsy = null | undefined | 0 | "" | false;
 
 export type TwMergeFn = ReturnType<typeof createTwMerge>;
 
-export const isUnwrapped = (
-  styles: CompressedStyles
-): styles is UnwrappedData => typeof styles[1] === "number";
+export const SPECIAL_SPLIT_CHART = ",";
 
 export const createTwMerge = (compressedConfig: CompressedConfig) => {
   if (!compressedConfig) throw "No config";
 
-  const config: UncompressedConfig = mapValues(compressedConfig, (styles) => {
+  const config: UncompressedConfig = mapValues(compressedConfig, (data) => {
     const obj: Styles = {};
-    const populateObj = ([props, ...values]: UnwrappedData) => {
-      const p: PropertyKey[] = Array.isArray(props) ? props : [props];
-      p.forEach((p) => {
-        obj[p] = values;
+    // split into 4s
+    const groups = [] as CompressedPropMetadata[];
+    data.forEach((curr, i) => {
+      const index = i % 4;
+      // @ts-ignore
+      if (index === 0) groups.push([]);
+      groups.at(-1)!.push(curr);
+    });
+    // populate config
+    groups.forEach(([props, value, order, important]) => {
+      props.split(SPECIAL_SPLIT_CHART).forEach((p) => {
+        obj[p] = { v: value, o: order, ...(important && { i: 1 }) };
       });
-    };
-    if (isUnwrapped(styles)) {
-      populateObj(styles);
-    } else {
-      styles.forEach(populateObj);
-    }
+    });
+
     return obj;
   });
 
@@ -86,11 +86,11 @@ export const createTwMerge = (compressedConfig: CompressedConfig) => {
           const noOverride = entries.every(([prop, map]) => {
             const noExistingStyle = currentStyles[prop] === undefined;
             addsStyle = addsStyle || noExistingStyle;
-            addsImportant = !currentStyles[prop]?.[2] && map[2];
+            addsImportant = !currentStyles[prop]?.i && map.i;
             return (
               noExistingStyle ||
-              currentStyles[prop][0] === map[0] ||
-              currentStyles[prop][1] > map[1]
+              currentStyles[prop].v === map.v ||
+              currentStyles[prop].o > map.o
             );
           });
           const shouldAdd = (addsStyle && noOverride) || addsImportant;
