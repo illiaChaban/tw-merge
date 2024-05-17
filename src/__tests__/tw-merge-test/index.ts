@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { Config, TwMergeFn, createTwMerge } from "../../tw-merge";
+import { CompressedConfig, TwMergeFn, createTwMerge } from "../../tw-merge";
 import { testArbitraryValues } from "./arbitrary-values";
 import { testArbitraryProperties } from "./arbitrary-properties";
 import { testImportantModifier } from "./important-modifer";
@@ -15,7 +15,7 @@ import { testLineClamp } from "./line-clamp";
 import { testClassGroupsConflicts } from "./class-groups-conflicts";
 import { testPseudoElements } from "./pseudo-elements";
 
-export const testTwMerge = (getConfig: () => Promise<Config>) =>
+export const testTwMerge = (getConfig: () => Promise<CompressedConfig>) =>
   describe("tw-merge", () => {
     let twMerge: ReturnType<typeof createTwMerge>;
 

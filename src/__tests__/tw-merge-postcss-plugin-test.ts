@@ -2,10 +2,12 @@ import postcss from "postcss";
 import tailwindcss from "tailwindcss";
 import { describe, expect, it } from "vitest";
 import twMergePlugin from "../tw-merge-postcss-plugin";
-import { Config } from "../tw-merge.js";
+import { CompressedConfig } from "../tw-merge.js";
 import { customTwPlugin } from "./tw-merge-test/custom-plugins";
 
-export const testPlugin = (writeConfig: (data: Config) => Promise<void>) =>
+export const testPlugin = (
+  writeConfig: (data: CompressedConfig) => Promise<void>
+) =>
   describe(twMergePlugin.name, () => {
     it("should generate config", async () => {
       const inputCss = `
@@ -14,7 +16,7 @@ export const testPlugin = (writeConfig: (data: Config) => Promise<void>) =>
         @tailwind utilities;
       `;
 
-      let twConfig: Config;
+      let twConfig: CompressedConfig;
 
       const processed = await postcss([
         tailwindcss({

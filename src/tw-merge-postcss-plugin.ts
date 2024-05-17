@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import { Declaration, PluginCreator } from "postcss";
-import { Config } from "./tw-merge";
+import { CompressedConfig } from "./tw-merge";
 
 /**
 
@@ -58,7 +58,7 @@ TODO: how much perf did i save by minimizing ? compare minimized VS non-minimize
 // writeConfigToFile(data, __dirname + "/../test/_generated/tw-config.ts")
 
 const cssMergePlugin: PluginCreator<{
-  onParsed: (data: Config) => void;
+  onParsed: (data: CompressedConfig) => void;
 }> = (
   { onParsed } = {
     onParsed: () => panic("onParsed is not defined"),

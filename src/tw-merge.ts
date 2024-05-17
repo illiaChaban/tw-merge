@@ -1,17 +1,18 @@
 import { logWhen } from "./utils/log-when";
 
-export type Config = Record<ClassName, Styles>;
+export type CompressedConfig = Record<ClassName, Styles>;
 export type Styles = Record<PropertyKey, { o: Order; v: Value; i?: Important }>;
 type ClassName = string;
 type PropertyKey = string;
 type Order = number;
+type Value = number;
+type Important = 1;
+
 type Falsy = null | undefined | 0 | "" | false;
-type Value = string | number;
-type Important = boolean | 0 | 1 | undefined;
 
 export type TwMergeFn = ReturnType<typeof createTwMerge>;
 
-export const createTwMerge = (config: Config) => {
+export const createTwMerge = (config: CompressedConfig) => {
   if (!config) throw "No config";
 
   return (...allClasses: (string | Falsy)[]) => {

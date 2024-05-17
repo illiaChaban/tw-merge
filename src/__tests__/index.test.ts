@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import { describe, it } from "vitest";
-import { Config } from "../tw-merge";
+import { CompressedConfig } from "../tw-merge";
 import { writeToFile } from "../utils/write-to-file";
 import { testTwMerge } from "./tw-merge-test";
 import { testPlugin } from "./tw-merge-postcss-plugin-test";
@@ -17,12 +17,12 @@ describe.sequential("tw-merge tooling", () => {
 const GENERATED_DIR = "__generated";
 const FILE_NAME = "tw-config-example.ts";
 
-const writeConfig = (data: Config) =>
+const writeConfig = (data: CompressedConfig) =>
   writeToFile(`${__dirname}/${GENERATED_DIR}/${FILE_NAME}`)(
     `export default ${JSON.stringify(data)}`
   );
 
-const getConfig = async (): Promise<Config> =>
+const getConfig = async (): Promise<CompressedConfig> =>
   import(`./${GENERATED_DIR}/${FILE_NAME}`).then((r) => r.default);
 
 const cleanup = () =>
