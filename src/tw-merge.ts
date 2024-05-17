@@ -49,7 +49,7 @@ export const createTwMerge = (config: CompressedConfig) => {
           const entries = Object.entries(styles);
           // adds some styles without overriding existing
           let addsStyle = false;
-          let addsImportant: Important = false;
+          let addsImportant: boolean | Important | undefined = false;
           const noOverride = entries.every(([prop, map]) => {
             const noExistingStyle = currentStyles[prop] === undefined;
             addsStyle = addsStyle || noExistingStyle;
