@@ -42,6 +42,8 @@ export const testPlugin = (writeConfig: (data: Config) => Promise<void>) =>
 
       expect(isEmpty(config)).toBe(false);
 
+      console.log(config);
+
       await writeConfig(config);
     });
   });

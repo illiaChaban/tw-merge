@@ -1,13 +1,13 @@
 import { logWhen } from "./utils/log-when";
 
 export type Config = Record<ClassName, Styles>;
-export type Styles = Record<PropertyKey, { o: Order; v: Value; i: Important }>;
+export type Styles = Record<PropertyKey, { o: Order; v: Value; i?: Important }>;
 type ClassName = string;
 type PropertyKey = string;
 type Order = number;
 type Falsy = null | undefined | 0 | "" | false;
 type Value = string | number;
-type Important = boolean | 0 | 1;
+type Important = boolean | 0 | 1 | undefined;
 
 export type TwMergeFn = ReturnType<typeof createTwMerge>;
 
