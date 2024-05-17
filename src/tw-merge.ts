@@ -1,7 +1,8 @@
 import { logWhen } from "./utils/log-when";
 
 export type Config = Record<ClassName, Styles>;
-export type Styles = Record<PropertyKey, { o: Order; v: Value; i?: Important }>;
+export type Styles = Record<PropertyKey, [Value, Order, Important?]>;
+// export type Styles = Record<PropertyKey, { o: Order; v: Value; i?: Important }>;
 type ClassName = string;
 type PropertyKey = string;
 type Order = number;
@@ -49,16 +50,18 @@ export const createTwMerge = (config: Config) => {
           // adds some styles without overriding existing
           let addsStyle = false;
           let addsImportant: Important = false;
-          const noOverride = entries.every(([prop, map]) => {
-            const noExistingStyle = currentStyles[prop] === undefined;
-            addsStyle = addsStyle || noExistingStyle;
-            addsImportant = !currentStyles[prop]?.i && map.i;
-            return (
-              noExistingStyle ||
-              currentStyles[prop].v === map.v ||
-              currentStyles[prop].o > map.o
-            );
-          });
+          const noOverride = entries.every(
+            ([prop, [value, order, important]]) => {
+              const noExistingStyle = currentStyles[prop] === undefined;
+              addsStyle = addsStyle || noExistingStyle;
+              addsImportant = !currentStyles[prop]?.[2] && important;
+              return (
+                noExistingStyle ||
+                currentStyles[prop][0] === value ||
+                currentStyles[prop][1] > order
+              );
+            }
+          );
           const shouldAdd = (addsStyle && noOverride) || addsImportant;
           log({
             shouldAdd,

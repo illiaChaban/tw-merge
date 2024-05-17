@@ -359,15 +359,12 @@ const compressConfig = (() => {
       .map(([className, props]) => {
         const e = Object.entries(props).map(
           ([prop, { v, i, o }]) => {
+            const values = [minimizeNumberKey(v), o]
+            if (i) values.push(1)
             // update keys, encode location into prop key
             return [
               minimizeStringKey(prop),
-              {
-                v: minimizeNumberKey(v),
-                // avoid adding "important" to config when it's false 
-                ...(i && { i: 1 }),
-                o,
-              },
+              values
             ];
           }
         );
