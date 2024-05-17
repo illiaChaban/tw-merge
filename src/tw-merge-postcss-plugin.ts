@@ -4,26 +4,9 @@ import { logWhen } from "./utils/log-when";
 
 /**
 
-TODO: Doesn't support group yet or nested selector, 
-i.e
-dark:group-hover:opacity-100 ->
-.dark .group:hover .dark\:group-hover\:opacity-100
-
-group-hover:dark:opacity-100 ->
-.group:hover .dark .group-hover\:dark\:opacity-100
-
-TODO: minimize parsed - replace keys
-
-TODO: support any order for stacked modifiers? 
-i.e. sm:hover === hover:sm
-
-TODO: performance of Set(string VS number) vs Object Vs array.includes
-
 TODO: performance: tw-merge add caching?
 
-TODO: performance: how much does it matter if we check the last (first) passed string for conflicts and let the linter take of conflicts
-
-TODO: should i compare value & priority instead of just priority ?
+Comparing value & priority instead of just priority -->
 i.e 
 most after classes have "content: var(...)" line, if value is the same for 2 classes it's ok to add them both
 i.e x2
@@ -48,8 +31,6 @@ const ParentComponent = () => <BaseComponent class="..." />
 
 TODO: handle !important modifier correctly (may not adhere to order rule)
 - should it just be a logic inside tw-merge to not touch those? or should the users still be able to override them
-
-
 
 TODO: how much perf did i save by minimizing ? compare minimized VS non-minimized config
  */
@@ -277,8 +258,6 @@ const compressConfig = (() => {
     const specialChars = "+=_-)(*&^%$#@!~,.<>/?:;[]{}|";
     const chars = alphabet + alphabet.toUpperCase() + numbers + specialChars;
     const l = chars.length;
-    // let pointer = -1
-    // let prefix = ''
 
     let count = -1;
 
@@ -295,7 +274,6 @@ const compressConfig = (() => {
         const i = val / l ** (power - 1) - (pointer === 0 && power > 1 ? 1 : 0);
         const prevChar = chars[i];
         id = prevChar + id;
-        // console.log({ val, pointer: pointer + val, power, id, iteration })
         power++;
       } while (pointer > 0 && iteration < 10);
 
@@ -320,57 +298,7 @@ const compressConfig = (() => {
   const minimizeNumberKey = createMinimizeKey(generateNumberKey);
   const minimizeBoolean = (value: boolean) => (value ? 1 : 0);
 
-  return (config: PreprocessedConfig) => {
-    /**
-      map {
-        [className]: {
-          [location]: {
-            [prop]: order
-          }
-        }
-      } to {
-        [className]: {
-          [prop-key]: order
-        }
-      }
-
-    */
-    // _(
-    //   config,
-    //   mapValues(locations => {
-    //     _(
-    //       locations,
-    //       entries,
-    //       // flat / expand entries
-    //       flatMap(([location, props]) => _(
-    //         props,
-    //         entries,
-    //         map(prop => [location + '>>' + prop, order])
-    //       )),
-    //       fromEntries,
-    //       // minimize keys
-    //       keyBy((v, k) => minimizeKey(k))
-    //     )
-    //   }),
-    // )
-
-    // const configEntries = Object.entries(config)
-    //   // flat / expand locations
-    //   .map(([className, locations]) => {
-    //     const flatAffectedProps = Object.entries(locations).flatMap(
-    //       ([location, props]) => {
-    //         // update keys, encode location into prop key
-    //         return Object.entries(props).map(([prop, { v, i, ...map }]) => [
-    //           minimizeStringKey(location + ">>" + prop),
-    //           { v, i, ...map },
-    //           // { v: minimizeNumberKey(v), i: minimizeBoolean(i), ...map },
-    //         ]);
-    //       }
-    //     );
-    //     return [className, Object.fromEntries(flatAffectedProps)];
-    //   });
-    // return Object.fromEntries(configEntries);
-
+  return (config: PreprocessedConfig): CompressedConfig => {
     // TODO: replace with mapValues
     const configEntries = Object.entries(config).map(([className, props]) => {
       const e = Object.entries(props).map(([prop, { v, i, o }]) => {
