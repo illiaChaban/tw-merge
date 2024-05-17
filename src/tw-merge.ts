@@ -3,7 +3,7 @@ import { mapValues } from "./utils/map-values";
 
 export type CompressedConfig = Record<ClassName, CompressedStyles>;
 export type CompressedStyles = Array<
-  [PropertyKey[] | PropertyKey, Value, Order, Important?]
+  [PropertyKey[] | PropertyKey, PropMetadata]
 >;
 
 export type PropMetadata = [Value, Order, Important?];
@@ -25,7 +25,7 @@ export const createTwMerge = (compressedConfig: CompressedConfig) => {
 
   const config: UncompressedConfig = mapValues(compressedConfig, (styles) => {
     const obj: Styles = {};
-    styles.forEach(([props, ...values]) => {
+    styles.forEach(([props, values]) => {
       const p: PropertyKey[] = Array.isArray(props) ? props : [props];
       p.forEach((p) => {
         obj[p] = values;

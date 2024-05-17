@@ -317,7 +317,7 @@ const compressConfig = (() => {
       // return [className, Object.fromEntries(e)];
       // combine / minimize entries
       const combinedEntries = entries.reduce((acc, [prop, values]) => {
-        const i = acc.findIndex(([prop, ...existingValues]) =>
+        const i = acc.findIndex(([prop, existingValues]) =>
           valuesAreEqual(existingValues, values as PropMetadata)
         );
         if (i !== -1) {
@@ -327,7 +327,7 @@ const compressConfig = (() => {
         } else {
           // new entry
           // @ts-ignore
-          acc.push([prop, ...values]);
+          acc.push([prop, values]);
         }
         return acc;
       }, [] as CompressedStyles);
