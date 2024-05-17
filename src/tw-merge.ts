@@ -3,10 +3,10 @@ import { mapValues } from "./utils/map-values";
 
 export type CompressedConfig = Record<ClassName, CompressedStyles>;
 export type CompressedStyles = Array<
-  [PropertyKey[] | PropertyKey, PropMetadata]
+  [PropertyKey[] | PropertyKey, Value, Order, Important?]
 >;
 
-export type PropMetadata = { o: Order; v: Value; i?: Important };
+export type PropMetadata = [Value, Order, Important?];
 
 type UncompressedConfig = Record<ClassName, Styles>;
 type Styles = Record<PropertyKey, PropMetadata>;
@@ -25,7 +25,7 @@ export const createTwMerge = (compressedConfig: CompressedConfig) => {
 
   const config: UncompressedConfig = mapValues(compressedConfig, (styles) => {
     const obj: Styles = {};
-    styles.forEach(([props, values]) => {
+    styles.forEach(([props, ...values]) => {
       const p: PropertyKey[] = Array.isArray(props) ? props : [props];
       p.forEach((p) => {
         obj[p] = values;
@@ -72,11 +72,11 @@ export const createTwMerge = (compressedConfig: CompressedConfig) => {
           const noOverride = entries.every(([prop, map]) => {
             const noExistingStyle = currentStyles[prop] === undefined;
             addsStyle = addsStyle || noExistingStyle;
-            addsImportant = !currentStyles[prop]?.i && map.i;
+            addsImportant = !currentStyles[prop]?.[2] && map[2];
             return (
               noExistingStyle ||
-              currentStyles[prop].v === map.v ||
-              currentStyles[prop].o > map.o
+              currentStyles[prop][0] === map[0] ||
+              currentStyles[prop][1] > map[1]
             );
           });
           const shouldAdd = (addsStyle && noOverride) || addsImportant;

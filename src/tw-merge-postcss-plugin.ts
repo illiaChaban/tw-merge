@@ -305,18 +305,19 @@ const compressConfig = (() => {
         // update keys, encode location into prop key
         return [
           minimizeStringKey(prop),
-          {
-            v: minimizeNumberKey(v),
-            // avoid adding "important" to config when it's false
-            ...(i && { i: 1 }),
-            o,
-          },
+          [minimizeNumberKey(v), o].concat(i ? [1] : []),
+          // {
+          //   v: minimizeNumberKey(v),
+          //   // avoid adding "important" to config when it's false
+          //   ...(i && { i: 1 }),
+          //   o,
+          // },
         ];
       });
       // return [className, Object.fromEntries(e)];
       // combine / minimize entries
       const combinedEntries = entries.reduce((acc, [prop, values]) => {
-        const i = acc.findIndex(([, existingValues]) =>
+        const i = acc.findIndex(([prop, ...existingValues]) =>
           valuesAreEqual(existingValues, values as PropMetadata)
         );
         if (i !== -1) {
@@ -326,7 +327,7 @@ const compressConfig = (() => {
         } else {
           // new entry
           // @ts-ignore
-          acc.push([prop, values]);
+          acc.push([prop, ...values]);
         }
         return acc;
       }, [] as CompressedStyles);
@@ -338,7 +339,7 @@ const compressConfig = (() => {
 })();
 
 const valuesAreEqual = (a: PropMetadata, b: PropMetadata) =>
-  a.i === b.i && a.v === b.v && a.o === b.o;
+  a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
 
 const panic = (errorMsg: string) => {
   throw new Error(errorMsg);
