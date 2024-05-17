@@ -1,6 +1,6 @@
-import fs from "fs/promises";
 import { Declaration, PluginCreator } from "postcss";
 import { CompressedConfig } from "./tw-merge";
+import { logWhen } from "./utils/log-when";
 
 /**
 
@@ -53,9 +53,6 @@ TODO: handle !important modifier correctly (may not adhere to order rule)
 
 TODO: how much perf did i save by minimizing ? compare minimized VS non-minimized config
  */
-
-// (data: Config) =>
-// writeConfigToFile(data, __dirname + "/../test/_generated/tw-config.ts")
 
 const cssMergePlugin: PluginCreator<{
   onParsed: (data: CompressedConfig) => void;
@@ -242,30 +239,6 @@ const expandShorthand = ([property, value]: [string, string]) => {
   );
 };
 
-// const tryCreateDir = async (dirPath: string) => {
-//   try {
-//     // Try to access the directory
-//     await fs.access(dirPath);
-//   } catch (error) {
-//     // If the directory does not exist, create it
-//     await fs.mkdir(dirPath, { recursive: true });
-//     // console.log('Directory created:', dirPath);
-//   }
-// };
-
-// const writeConfigToFile = async (data, path) => {
-//   const split = path.split("/");
-//   const filePath = split.at(-1);
-//   const dirPath = split.slice(0, split.length - 1).join("/");
-//   // const dirPath = __dirname + '/../test/_generated'
-//   // dirPath + '/tw-config.ts'
-//   await tryCreateDir(dirPath);
-//   fs.writeFileSync(
-//     `${dirPath}/${filePath}`,
-//     `export default ${JSON.stringify(data)};`
-//   );
-// };
-
 type DeepConfig = Record<
   ClassName,
   Record<ElementLocation, Record<PropertyKey, Styles>>
@@ -417,12 +390,6 @@ const compressConfig = (() => {
     return Object.fromEntries(configEntries);
   };
 })();
-
-const logWhen =
-  (condition: unknown) =>
-  (...args: any[]) => {
-    if (condition) console.log(...args);
-  };
 
 const panic = (errorMsg: string) => {
   throw new Error(errorMsg);
