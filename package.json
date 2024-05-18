@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf ./dist && tsc",
     "test": "vitest run",
     "test-w": "vitest"
   },
@@ -27,8 +27,7 @@
     "url": "https://github.com/illiaChaban/tw-merge"
   },
   "files": [
-    "dist/**/*",
-    "!dist/**/__tests__"
+    "dist/**/*"
   ],
   "name": "@illlia/css-merge",
   "version": "0.0.1",
