@@ -18,15 +18,21 @@
     "tw",
     "ts",
     "tailwind-merge",
-    "tw-merge"
+    "tw-merge",
+    "css-merge",
+    "style-merge"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/illiaChaban/tw-merge"
   },
-  "name": "tw-merge",
+  "files": [
+    "dist/**/*",
+    "!dist/**/__tests__"
+  ],
+  "name": "@illlia/css-merge",
   "version": "0.0.1",
-  "description": "tw-merge",
+  "description": "css-merge is a tiny package to compose css classes on the 'last class wins' basis",
   "main": "dist/index.js",
-  "types": "src/index.ts"
+  "types": "dist/index.d.ts"
 }
