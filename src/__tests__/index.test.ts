@@ -5,16 +5,28 @@ import { writeToFile } from "../utils/write-to-file";
 import { testTwMerge } from "./css-merge-test";
 import { testPluginWithTailwind } from "./plugin-test/plugin-test-with-tailwind";
 import { writeConfig } from "../postcss-plugin";
+import { testPluginAlone } from "./plugin-test/plugin-test-alone";
 
 describe.sequential("tw-merge tooling", () => {
-  testPluginWithTailwind({
+  // test with tailwind plugin
+  // testPluginWithTailwind({
+  //   onParsedConfig: writeGeneratedConfig(CONFIG_FILE_NAME),
+  //   onProcessedCss: writeGenerated(OUTPUT_CSS_FILE_NAME),
+  // });
+  // testTwMerge(getConfig);
+  // it("cleanup generated config, keep css file", () =>
+  //   removeGenerated(CONFIG_FILE_NAME));
+
+  // test standalone
+  testPluginAlone({
+    getInputCss: () =>
+      fs.readFile(getGeneratedPath(OUTPUT_CSS_FILE_NAME), "utf-8"),
     onParsedConfig: writeGeneratedConfig(CONFIG_FILE_NAME),
-    onProcessedCss: writeGenerated(OUTPUT_CSS_FILE_NAME),
   });
   testTwMerge(getConfig);
-  it("cleanup generated config", () => removeGenerated(CONFIG_FILE_NAME));
 
-  it("cleanup all", () => removeGenerated());
+  // it("cleanup all", () => removeGenerated());
+  it("cleanup", () => removeGenerated(CONFIG_FILE_NAME));
 
   // TODO: test dark & size media queries combinations
   // TODO: test custom prefixes https://github.com/dcastil/tailwind-merge/blob/v2.3.0/tests/prefixes.test.ts

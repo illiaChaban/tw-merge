@@ -40,7 +40,7 @@ export const testPluginWithTailwind = ({
         }),
       ]).process(inputCss, { from: undefined });
 
-      console.log(processed.css);
+      // console.log(processed.css);
 
       await onProcessedCss?.(processed.css);
 

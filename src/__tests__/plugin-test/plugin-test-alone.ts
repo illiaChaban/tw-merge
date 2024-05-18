@@ -4,12 +4,19 @@ import { postcssPlugin } from "../../postcss-plugin";
 import { CompressedConfig } from "../../css-merge.js";
 import { isEmpty } from "../../utils/is";
 
-export const testPluginAlone = (
-  inputCss: string,
-  writeConfig: (data: CompressedConfig) => Promise<void>
-) =>
+export const testPluginAlone = ({
+  getInputCss,
+  onParsedConfig,
+}: {
+  getInputCss: () => Promise<string>;
+  onParsedConfig: (data: CompressedConfig) => Promise<void>;
+}) =>
   describe(postcssPlugin.name, () => {
     it("should generate config based on raw css", async () => {
+      const inputCss = await getInputCss();
+
+      console.log(inputCss);
+
       let compressedConfig: CompressedConfig;
 
       const processed = await postcss([
@@ -24,6 +31,6 @@ export const testPluginAlone = (
       // no changes to input css
       expect(inputCss).toEqual(processed.css);
 
-      await writeConfig(config);
+      await onParsedConfig(config);
     });
   });
