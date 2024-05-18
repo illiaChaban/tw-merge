@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { CompressedConfig, TwMergeFn, createTwMerge } from "../../tw-merge";
+import { CompressedConfig, CssMergeFn, createCssMerge } from "../../css-merge";
 import { testArbitraryValues } from "./arbitrary-values";
 import { testArbitraryProperties } from "./arbitrary-properties";
 import { testImportantModifier } from "./important-modifer";
@@ -17,17 +17,17 @@ import { testPseudoElements } from "./pseudo-elements";
 
 export const testTwMerge = (getConfig: () => Promise<CompressedConfig>) =>
   describe("tw-merge", () => {
-    let twMerge: ReturnType<typeof createTwMerge>;
+    let twMerge: ReturnType<typeof createCssMerge>;
 
     it("should create tw-merge", async () => {
       const config = await getConfig();
       expect(Object.keys(config).includes("p-2")).toBe(true);
-      twMerge = createTwMerge(config);
+      twMerge = createCssMerge(config);
       expect(twMerge).toBeTypeOf("function");
     });
 
     // Extended test to access twMerge in other tests through context
-    const contextTest = it.extend<{ twMerge: TwMergeFn }>({
+    const contextTest = it.extend<{ twMerge: CssMergeFn }>({
       twMerge: async ({}, use) => {
         await use(twMerge);
       },

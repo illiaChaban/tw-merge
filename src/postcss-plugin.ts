@@ -3,9 +3,10 @@ import {
   CompressedConfig,
   PropMetadata,
   SPECIAL_SPLIT_CHART,
-} from "./tw-merge";
+} from "./css-merge";
 import { logWhen } from "./utils/log-when";
 import { assert } from "./utils/assert";
+import { writeToFile } from "./utils/write-to-file";
 
 /**
 
@@ -40,7 +41,7 @@ TODO: handle !important modifier correctly (may not adhere to order rule)
 TODO: how much perf did i save by minimizing ? compare minimized VS non-minimized config
  */
 
-const cssMergePlugin: PluginCreator<{
+export const postcssPlugin: PluginCreator<{
   onParsed: (data: CompressedConfig) => void;
 }> = (
   { onParsed } = {
@@ -208,9 +209,7 @@ const cssMergePlugin: PluginCreator<{
     },
   };
 };
-cssMergePlugin.postcss = true;
-
-export default cssMergePlugin;
+postcssPlugin.postcss = true;
 
 const expandShorthand = ([property, value]: [string, string]) => {
   // TODO: extend this
@@ -366,3 +365,6 @@ const valuesAreEqual = (a: PropMetadata, b: PropMetadata) =>
 const panic = (errorMsg: string) => {
   throw new Error(errorMsg);
 };
+
+export const writeConfig = (fileName: string) => (data: CompressedConfig) =>
+  writeToFile(fileName)(`export default ${JSON.stringify(data)}`);

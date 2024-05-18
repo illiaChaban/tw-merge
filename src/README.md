@@ -1,3 +1,5 @@
+CSS size: 21.0 KB & Compressed size 5.12 KB
+
 Perfomance tests: config optimization
 
 Object styles : 7.89 kB -> 2.53 kB (gzip)

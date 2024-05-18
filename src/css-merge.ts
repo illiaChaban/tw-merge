@@ -21,11 +21,11 @@ type Important = 1;
 
 type Falsy = null | undefined | 0 | "" | false;
 
-export type TwMergeFn = ReturnType<typeof createTwMerge>;
+export type CssMergeFn = ReturnType<typeof createCssMerge>;
 
 export const SPECIAL_SPLIT_CHART = ",";
 
-export const createTwMerge = (compressedConfig: CompressedConfig) => {
+export const createCssMerge = (compressedConfig: CompressedConfig) => {
   if (!compressedConfig) throw "No config";
 
   const config: UncompressedConfig = mapValues(compressedConfig, (data) => {
