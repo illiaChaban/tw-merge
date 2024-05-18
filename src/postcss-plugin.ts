@@ -366,5 +366,5 @@ const panic = (errorMsg: string) => {
   throw new Error(errorMsg);
 };
 
-export const writeConfig = (fileName: string) => (data: CompressedConfig) =>
-  writeToFile(fileName)(`export default ${JSON.stringify(data)}`);
+export const writeConfig = (path: string) => (data: CompressedConfig) =>
+  writeToFile(path)(`export default ${JSON.stringify(data)}`);
