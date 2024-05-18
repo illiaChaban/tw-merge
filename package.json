@@ -30,7 +30,7 @@
     "dist/**/*"
   ],
   "name": "@illlia/css-merge",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "css-merge is a tiny package to compose css classes on the 'last class wins' basis",
   "main": "dist/index.js",
   "types": "dist/index.d.ts"
